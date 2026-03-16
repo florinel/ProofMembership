@@ -1,0 +1,16 @@
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+membership_core = "3Ne2f2pLbgpsWL3v9xCDy6VjKmoqHjbBtEJL3a6tMuCs"
+
+[programs.devnet]
+membership_core = "3Ne2f2pLbgpsWL3v9xCDy6VjKmoqHjbBtEJL3a6tMuCs"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/solnft/admin.json"
+
+[scripts]
+test = "anchor test --provider.cluster localnet"

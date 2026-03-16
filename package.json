@@ -1,0 +1,17 @@
+{
+  "name": "solnft",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.12.3",
+  "scripts": {
+    "util:clean-start:local": "bash ./scripts/clean-start-local.sh",
+    "util:stop-all:local": "bash ./scripts/stop-all-local.sh",
+    "util:watch:changelog": "node ./scripts/changelog-watch.mjs",
+    "dev:web": "pnpm --filter @solnft/web dev",
+    "build:web": "pnpm --filter @solnft/web build",
+    "lint:web": "pnpm --filter @solnft/web lint",
+    "test:web:unit": "pnpm --filter @solnft/web test:unit",
+    "test:backend:unit": "cargo test --manifest-path programs/membership_core/Cargo.toml",
+    "check": "pnpm lint:web"
+  }
+}
