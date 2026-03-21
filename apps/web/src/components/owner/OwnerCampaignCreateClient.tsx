@@ -7,6 +7,8 @@ type ClubSummary = {
   id: string;
   slug: string;
   ownerWallet: string;
+  campaignFeeBps: number;
+  minCampaignFeeAtomic: string;
 };
 
 export default function OwnerCampaignCreateClient() {
@@ -17,6 +19,7 @@ export default function OwnerCampaignCreateClient() {
   const [mintMode, setMintMode] = useState<"on_purchase" | "live_event">("on_purchase");
   const [templateFile, setTemplateFile] = useState<File | null>(null);
   const [templateImageUri, setTemplateImageUri] = useState("");
+  const [priceAtomic, setPriceAtomic] = useState("5");
 
   useEffect(() => {
     async function loadClubs() {
@@ -106,7 +109,6 @@ export default function OwnerCampaignCreateClient() {
         ownerWallet: ownerWallet.trim(),
         name: String(form.get("name") ?? ""),
         priceAtomic: String(form.get("priceAtomic") ?? ""),
-        paymentToken: String(form.get("paymentToken") ?? "SOL"),
         templateImageUri,
         mintMode,
         mintStartsAtUnix,
@@ -124,6 +126,14 @@ export default function OwnerCampaignCreateClient() {
 
     setStatus(`Campaign created: ${data.campaign?.name ?? data.campaign?.id ?? "ok"}. Go to /storefront to purchase.`);
   }
+
+  const selectedClub = ownerClubs.find((club) => club.id === clubId) ?? null;
+  const parsedPrice = Number(priceAtomic);
+  const minFee = Number(selectedClub?.minCampaignFeeAtomic ?? "0");
+  const bps = selectedClub?.campaignFeeBps ?? 0;
+  const bpsFee = Number.isFinite(parsedPrice) ? (parsedPrice * bps) / 10_000 : 0;
+  const platformFee = Number.isFinite(parsedPrice) && parsedPrice > 0 ? Math.min(parsedPrice, Math.max(minFee, bpsFee)) : 0;
+  const ownerNet = Number.isFinite(parsedPrice) && parsedPrice > 0 ? Math.max(0, parsedPrice - platformFee) : 0;
 
   return (
     <form className="panel form-grid" onSubmit={submit}>
@@ -155,15 +165,30 @@ export default function OwnerCampaignCreateClient() {
       </label>
       <label>
         Price
-        <input name="priceAtomic" type="number" min="0" step="0.01" placeholder="120" />
+        <input
+          name="priceAtomic"
+          type="number"
+          min="0"
+          step="0.000001"
+          placeholder="5"
+          value={priceAtomic}
+          onChange={(event) => setPriceAtomic(event.target.value)}
+        />
       </label>
-      <label>
-        Payment token
-        <select aria-label="Payment token" name="paymentToken" defaultValue="USDC">
-          <option value="SOL">SOL</option>
-          <option value="USDC">USDC</option>
-        </select>
-      </label>
+      <p className="kicker">Payment token: SOL only</p>
+      <div className="panel">
+        <p><strong>Owner fee preview (only visible to owner)</strong></p>
+        {selectedClub ? (
+          <div className="stack-sm">
+            <p>Configured platform policy: {selectedClub.campaignFeeBps} bps + {selectedClub.minCampaignFeeAtomic} SOL min</p>
+            <p>Member pays: {Number.isFinite(parsedPrice) ? parsedPrice.toFixed(6) : "0.000000"} SOL</p>
+            <p>Platform fee: {platformFee.toFixed(6)} SOL</p>
+            <p>Owner receives: {ownerNet.toFixed(6)} SOL</p>
+          </div>
+        ) : (
+          <p>Select an owned club to view fee and net preview.</p>
+        )}
+      </div>
       <label>
         Mint mode
         <select

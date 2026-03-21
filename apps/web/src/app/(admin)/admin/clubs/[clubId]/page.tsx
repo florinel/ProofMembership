@@ -44,6 +44,8 @@ export default async function AdminClubDetailPage({
       <div className="panel">
         <p>Owner wallet: {club.ownerWallet}</p>
         <p>Metadata URI: {club.metadataUri}</p>
+        <p>Campaign fee BPS: {club.campaignFeeBps}</p>
+        <p>Minimum campaign fee: {club.minCampaignFeeAtomic} SOL</p>
       </div>
       <div className="panel">
         <h3>Campaigns</h3>
@@ -61,7 +63,7 @@ export default async function AdminClubDetailPage({
               <tr key={campaign.id}>
                 <td>{campaign.name}</td>
                 <td>
-                  {campaign.priceAtomic} {campaign.paymentToken}
+                  {campaign.priceAtomic} SOL
                 </td>
                 <td>{campaign.status}</td>
                 <td>{formatExpiry(campaign.expiresAtUnix)}</td>

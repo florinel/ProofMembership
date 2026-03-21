@@ -4,14 +4,13 @@ use anchor_lang::solana_program::{program::invoke, system_instruction};
 use crate::{
     error::MembershipError,
     events::CampaignCreated,
-    state::{Campaign, CampaignStatus, Club, PaymentMint, PlatformConfig},
+    state::{Campaign, CampaignStatus, Club, PlatformConfig},
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct CreateCampaignParams {
     pub name: String,
     pub price: u64,
-    pub payment_mint: PaymentMint,
     pub max_supply: Option<u32>,
     pub expires_at_unix: Option<i64>,
 }
@@ -69,7 +68,6 @@ pub fn handler(ctx: Context<CreateCampaign>, params: CreateCampaignParams) -> Re
     campaign.owner = ctx.accounts.club_owner.key();
     campaign.name = params.name.clone();
     campaign.price = params.price;
-    campaign.payment_mint = params.payment_mint;
     campaign.max_supply = params.max_supply;
     campaign.minted_supply = 0;
     campaign.expires_at_unix = params.expires_at_unix;

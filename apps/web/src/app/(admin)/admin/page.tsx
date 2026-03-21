@@ -48,6 +48,7 @@ export default async function AdminPage() {
             <tr>
               <th>Slug</th>
               <th>Owner</th>
+              <th>Fee Policy</th>
               <th>Campaigns</th>
             </tr>
           </thead>
@@ -60,6 +61,7 @@ export default async function AdminPage() {
                     <Link href={`/admin/clubs/${club.id}`}>{club.slug}</Link>
                   </td>
                   <td>{club.ownerWallet}</td>
+                  <td>{club.campaignFeeBps} bps + {club.minCampaignFeeAtomic} SOL min</td>
                   <td>{campaignCount}</td>
                 </tr>
               );

@@ -20,20 +20,22 @@ describe("store lifecycle", () => {
     const config = initializePlatform({
       clubCreationFee: 2,
       campaignCreationFee: 0.7,
-      campaignFeeBps: 800,
+      defaultCampaignFeeBps: 800,
+      defaultMinCampaignFeeAtomic: "0.0003",
     });
 
     expect(config.initialized).toBe(true);
     expect(config.clubCreationFee).toBe(2);
     expect(config.campaignCreationFee).toBe(0.7);
-    expect(config.campaignFeeBps).toBe(800);
+    expect(config.defaultCampaignFeeBps).toBe(800);
   });
 
   it("creates a club after sufficient fee", () => {
     initializePlatform({
       clubCreationFee: 1,
       campaignCreationFee: 0.5,
-      campaignFeeBps: 500,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
     });
 
     const club = createClub({
@@ -52,7 +54,8 @@ describe("store lifecycle", () => {
     initializePlatform({
       clubCreationFee: 1,
       campaignCreationFee: 5,
-      campaignFeeBps: 500,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
     });
 
     const club = createClub({
@@ -67,7 +70,6 @@ describe("store lifecycle", () => {
       ownerWallet: "owner-wallet-2",
       name: "Fee Collected Campaign",
       priceAtomic: "10",
-      paymentToken: "SOL",
       templateImageUri: "https://example.com/template.png",
       mintMode: "on_purchase",
       mintStartsAtUnix: null,
@@ -84,7 +86,8 @@ describe("store lifecycle", () => {
     initializePlatform({
       clubCreationFee: 1,
       campaignCreationFee: 0.5,
-      campaignFeeBps: 500,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
     });
 
     const club = createClub({
@@ -99,7 +102,6 @@ describe("store lifecycle", () => {
       ownerWallet: "owner-wallet-3",
       name: "Flow Campaign",
       priceAtomic: "2.5",
-      paymentToken: "USDC",
       templateImageUri: "https://example.com/template-flow.png",
       mintMode: "live_event",
       mintStartsAtUnix: Math.floor(Date.now() / 1000) - 60,
@@ -124,7 +126,8 @@ describe("store lifecycle", () => {
     initializePlatform({
       clubCreationFee: 1,
       campaignCreationFee: 0.5,
-      campaignFeeBps: 500,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
     });
 
     const club = createClub({
@@ -140,7 +143,6 @@ describe("store lifecycle", () => {
         ownerWallet: "owner-wallet-template",
         name: "No Template Campaign",
         priceAtomic: "1.2",
-        paymentToken: "SOL",
         templateImageUri: "",
         mintMode: "on_purchase",
         mintStartsAtUnix: null,
@@ -154,7 +156,8 @@ describe("store lifecycle", () => {
     initializePlatform({
       clubCreationFee: 1,
       campaignCreationFee: 0.5,
-      campaignFeeBps: 500,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
     });
 
     const club = createClub({
@@ -169,7 +172,6 @@ describe("store lifecycle", () => {
       ownerWallet: "owner-wallet-live",
       name: "Future Live Mint",
       priceAtomic: "3",
-      paymentToken: "USDC",
       templateImageUri: "https://example.com/live-template.png",
       mintMode: "live_event",
       mintStartsAtUnix: Math.floor(Date.now() / 1000) + 3600,

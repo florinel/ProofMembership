@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import type { MintMode, PaymentToken } from "@solnft/types";
+import type { MintMode } from "@solnft/types";
 
 import { createCampaign } from "@/lib/data/store";
-
-function parsePaymentToken(value: string): PaymentToken | null {
-  if (value === "SOL" || value === "USDC") {
-    return value;
-  }
-  return null;
-}
 
 function parseMintMode(value: string): MintMode | null {
   if (value === "on_purchase" || value === "live_event") {
@@ -24,7 +17,6 @@ export async function POST(request: NextRequest) {
     ownerWallet?: string;
     name?: string;
     priceAtomic?: string;
-    paymentToken?: string;
     templateImageUri?: string;
     mintMode?: string;
     mintStartsAtUnix?: number | null;
@@ -35,11 +27,6 @@ export async function POST(request: NextRequest) {
 
   if (body.campaignFeeBps !== undefined) {
     return NextResponse.json({ error: "owner_cannot_set_campaign_fee_bps" }, { status: 400 });
-  }
-
-  const paymentToken = parsePaymentToken(String(body.paymentToken ?? ""));
-  if (!paymentToken) {
-    return NextResponse.json({ error: "invalid_payment_token" }, { status: 400 });
   }
 
   const mintMode = parseMintMode(String(body.mintMode ?? "on_purchase"));
@@ -53,7 +40,6 @@ export async function POST(request: NextRequest) {
       ownerWallet: String(body.ownerWallet ?? "").trim(),
       name: String(body.name ?? "").trim(),
       priceAtomic: String(body.priceAtomic ?? "").trim(),
-      paymentToken,
       templateImageUri: String(body.templateImageUri ?? "").trim(),
       mintMode,
       mintStartsAtUnix: body.mintStartsAtUnix ?? null,

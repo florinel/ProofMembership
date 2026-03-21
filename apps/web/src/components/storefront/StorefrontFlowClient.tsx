@@ -87,7 +87,7 @@ export default function StorefrontFlowClient() {
           <section key={campaign.id} className="panel">
             <h3>{campaign.name}</h3>
             <p>
-              {campaign.priceAtomic} {campaign.paymentToken}
+              {campaign.priceAtomic} SOL
             </p>
             <p>{formatExpiry(campaign.expiresAtUnix)}</p>
             <p>

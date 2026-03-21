@@ -1,9 +1,31 @@
 :root {
   color-scheme: light;
   --bg: #f5f8f2;
+  --bg-accent: #d6f5e8;
   --surface: #ffffff;
   --ink: #0f2a22;
   --accent: #0d8a63;
+  --muted: #2f564b;
+  --border: #d8e3dc;
+  --table-border: #e0eae4;
+  --table-head: #3a6558;
+  --input-border: #c7d6cd;
+  --shadow: rgba(15, 42, 34, 0.06);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #081712;
+  --bg-accent: #0f2b22;
+  --surface: #10231d;
+  --ink: #e4f2ed;
+  --accent: #2ad39d;
+  --muted: #9ac8b9;
+  --border: #274138;
+  --table-border: #20392f;
+  --table-head: #9ac8b9;
+  --input-border: #355449;
+  --shadow: rgba(0, 0, 0, 0.35);
 }
 
 * {
@@ -15,7 +37,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Space Grotesk", "Segoe UI", sans-serif;
-  background: radial-gradient(circle at 0 0, #d6f5e8 0%, var(--bg) 45%);
+  background: radial-gradient(circle at 0 0, var(--bg-accent) 0%, var(--bg) 45%);
   color: var(--ink);
 }
 
@@ -40,10 +62,10 @@ a {
 
 .panel {
   background: var(--surface);
-  border: 1px solid #d8e3dc;
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 6px 22px rgba(15, 42, 34, 0.06);
+  box-shadow: 0 6px 22px var(--shadow);
 }
 
 .panel h2,
@@ -59,7 +81,7 @@ a {
 }
 
 .kicker {
-  color: #2f564b;
+  color: var(--muted);
   font-weight: 600;
 }
 
@@ -72,14 +94,14 @@ a {
 .table td {
   text-align: left;
   padding: 0.55rem;
-  border-bottom: 1px solid #e0eae4;
+  border-bottom: 1px solid var(--table-border);
 }
 
 .table th {
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #3a6558;
+  color: var(--table-head);
 }
 
 .form-grid {
@@ -96,7 +118,9 @@ a {
 
 .form-grid input,
 .form-grid select {
-  border: 1px solid #c7d6cd;
+  border: 1px solid var(--input-border);
+  background: var(--surface);
+  color: var(--ink);
   border-radius: 8px;
   padding: 0.55rem 0.65rem;
   font: inherit;
@@ -116,4 +140,29 @@ a {
   display: grid;
   gap: 0.3rem;
   margin-top: 0.75rem;
+}
+
+.theme-toggle {
+  position: fixed;
+  right: 1rem;
+  top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  z-index: 20;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  width: 2.4rem;
+  height: 2.4rem;
+  justify-content: center;
+  padding: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 18px var(--shadow);
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
 }

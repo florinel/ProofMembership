@@ -8,8 +8,8 @@ pub mod utils;
 
 use crate::instructions::{
     CreateCampaign, CreateCampaignParams, CreateClub, CreateClubParams, InitializePlatform,
-    InitializePlatformParams, PurchaseMembership, PurchaseMembershipParams,
-    PurchaseMembershipUsdc, PurchaseMembershipUsdcParams,
+    InitializePlatformParams, PurchaseMembership, PurchaseMembershipParams, SetClubFeePolicy,
+    SetClubFeePolicyParams,
 };
 #[allow(unused_imports)]
 use crate::instructions::create_campaign::__client_accounts_create_campaign;
@@ -20,7 +20,7 @@ use crate::instructions::initialize_platform::__client_accounts_initialize_platf
 #[allow(unused_imports)]
 use crate::instructions::purchase_membership::__client_accounts_purchase_membership;
 #[allow(unused_imports)]
-use crate::instructions::purchase_membership_usdc::__client_accounts_purchase_membership_usdc;
+use crate::instructions::set_club_fee_policy::__client_accounts_set_club_fee_policy;
 
 declare_id!("3Ne2f2pLbgpsWL3v9xCDy6VjKmoqHjbBtEJL3a6tMuCs");
 
@@ -56,10 +56,10 @@ pub mod membership_core {
         instructions::purchase_membership::handler(ctx, params)
     }
 
-    pub fn purchase_membership_usdc(
-        ctx: Context<PurchaseMembershipUsdc>,
-        params: PurchaseMembershipUsdcParams,
+    pub fn set_club_fee_policy(
+        ctx: Context<SetClubFeePolicy>,
+        params: SetClubFeePolicyParams,
     ) -> Result<()> {
-        instructions::purchase_membership_usdc::handler(ctx, params)
+        instructions::set_club_fee_policy::handler(ctx, params)
     }
 }

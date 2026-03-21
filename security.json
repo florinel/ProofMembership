@@ -1,0 +1,15 @@
+{
+  "name": "SolNFT Membership Core",
+  "project_url": "https://github.com/florinel/solnft",
+  "contacts": [
+    "email:security@example.com",
+    "link:https://github.com/florinel/solnft/security"
+  ],
+  "policy": "https://github.com/florinel/solnft/blob/main/SECURITY.md",
+  "preferred_languages": [
+    "en"
+  ],
+  "source_code": "https://github.com/florinel/solnft",
+  "source_release": "devnet",
+  "version": "0.1.0"
+}

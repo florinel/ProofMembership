@@ -63,7 +63,7 @@ export default async function OwnerPage() {
               <tr key={campaign.id}>
                 <td>{campaign.name}</td>
                 <td>
-                  {campaign.priceAtomic} {campaign.paymentToken}
+                  {campaign.priceAtomic} SOL
                 </td>
                 <td>{campaign.mintMode === "live_event" ? "Live event" : "On purchase"}</td>
                 <td>{campaign.status}</td>

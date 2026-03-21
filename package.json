@@ -6,6 +6,9 @@
   "scripts": {
     "util:clean-start:local": "bash ./scripts/clean-start-local.sh",
     "util:stop-all:local": "bash ./scripts/stop-all-local.sh",
+    "util:start:devnet": "bash ./scripts/start-devnet.sh",
+    "util:stop:devnet": "bash ./scripts/stop-devnet.sh",
+    "util:deploy:devnet": "bash ./scripts/deploy-devnet.sh",
     "util:watch:changelog": "node ./scripts/changelog-watch.mjs",
     "dev:web": "pnpm --filter @solnft/web dev",
     "build:web": "pnpm --filter @solnft/web build",

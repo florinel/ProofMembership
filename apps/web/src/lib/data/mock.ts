@@ -6,12 +6,16 @@ export const clubs: Club[] = [
     slug: "golden-greens",
     ownerWallet: "9rmx...7h2Q",
     metadataUri: "https://example.com/clubs/golden-greens.json",
+    campaignFeeBps: 200,
+    minCampaignFeeAtomic: "0.000300",
   },
   {
     id: "club-river-vip",
     slug: "river-vip",
     ownerWallet: "F3cD...19Qm",
     metadataUri: "https://example.com/clubs/river-vip.json",
+    campaignFeeBps: 175,
+    minCampaignFeeAtomic: "0.000300",
   },
 ];
 
@@ -35,7 +39,7 @@ export const campaigns: Campaign[] = [
     clubId: "club-golden-greens",
     name: "VIP 2026 Access",
     priceAtomic: "120",
-    paymentToken: "USDC",
+    paymentToken: "SOL",
     templateImageUri: "https://example.com/media/greens-vip.png",
     mintMode: "live_event",
     mintStartsAtUnix: 1767225600,

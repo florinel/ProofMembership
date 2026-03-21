@@ -20,7 +20,7 @@ export default async function OwnerCreateCampaignPage() {
   return (
     <main className="container">
       <h1>Create Campaign</h1>
-      <p className="kicker">Scaffold form for tiered membership campaign setup.</p>
+      <p className="kicker">Set membership price in SOL with clear platform-fee and owner-net preview.</p>
       <OwnerCampaignCreateClient />
       <Link href="/owner">Back to owner dashboard</Link>
     </main>

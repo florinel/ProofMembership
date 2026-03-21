@@ -4,7 +4,7 @@ use anchor_lang::solana_program::{program::invoke, system_instruction};
 use crate::{
     error::MembershipError,
     events::MembershipPurchased,
-    state::{Campaign, CampaignStatus, Membership, PaymentMint, PlatformConfig},
+    state::{Campaign, CampaignStatus, Club, Membership, PlatformConfig},
     utils::calculate_platform_and_owner_split,
 };
 
@@ -23,6 +23,8 @@ pub struct PurchaseMembership<'info> {
     #[account(mut)]
     pub campaign: Account<'info, Campaign>,
     #[account(mut)]
+    pub club: Account<'info, Club>,
+    #[account(mut)]
     pub platform_treasury: SystemAccount<'info>,
     #[account(mut)]
     pub owner_treasury: SystemAccount<'info>,
@@ -40,9 +42,10 @@ pub struct PurchaseMembership<'info> {
 pub fn handler(ctx: Context<PurchaseMembership>, params: PurchaseMembershipParams) -> Result<()> {
     let clock = Clock::get()?;
     let campaign = &mut ctx.accounts.campaign;
+    let club = &ctx.accounts.club;
     let platform_config = &ctx.accounts.platform_config;
 
-    require!(campaign.payment_mint == PaymentMint::Sol, MembershipError::InvalidPaymentMint);
+    require_keys_eq!(campaign.club, club.key(), MembershipError::ClubMismatch);
     require_keys_eq!(
         ctx.accounts.owner_treasury.key(),
         campaign.owner,
@@ -71,7 +74,7 @@ pub fn handler(ctx: Context<PurchaseMembership>, params: PurchaseMembershipParam
     }
 
     let (platform_fee, owner_amount) =
-        calculate_platform_and_owner_split(campaign.price, platform_config.campaign_fee_bps)?;
+        calculate_platform_and_owner_split(campaign.price, club.campaign_fee_bps, club.min_campaign_fee_lamports)?;
 
     if platform_fee > 0 {
         invoke(

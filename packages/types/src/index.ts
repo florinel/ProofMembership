@@ -5,9 +5,11 @@ export interface Club {
   slug: string;
   ownerWallet: string;
   metadataUri: string;
+  campaignFeeBps: number;
+  minCampaignFeeAtomic: string;
 }
 
-export type PaymentToken = "SOL" | "USDC";
+export type PaymentToken = "SOL";
 
 export type MintMode = "on_purchase" | "live_event";
 

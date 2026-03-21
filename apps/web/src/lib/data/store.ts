@@ -9,14 +9,14 @@ import type {
   MintMode,
   MembershipNftMetadata,
   MintedMembershipAsset,
-  PaymentToken,
 } from "@solnft/types";
 
 type PlatformConfig = {
   initialized: boolean;
   clubCreationFee: number;
   campaignCreationFee: number;
-  campaignFeeBps: number;
+  defaultCampaignFeeBps: number;
+  defaultMinCampaignFeeAtomic: string;
 };
 
 type PlatformLedger = {
@@ -44,6 +44,8 @@ type PurchaseResult = {
   membership: Membership;
   asset: MintedMembershipAsset;
   paidAmount: number;
+  platformFeeAtomic: string;
+  ownerReceivesAtomic: string;
 };
 
 function resolveRepoRoot(): string {
@@ -69,7 +71,8 @@ const initialState: PlatformState = {
     initialized: false,
     clubCreationFee: 1,
     campaignCreationFee: 0.5,
-    campaignFeeBps: 500,
+    defaultCampaignFeeBps: 200,
+    defaultMinCampaignFeeAtomic: "0.000300",
   },
   ledger: {
     incomingDeposits: 0,
@@ -112,8 +115,6 @@ function writeStore(state: PlatformState): void {
 
 function appendEvent(type: string, payload: Record<string, unknown>): void {
   ensureStorage();
-  // Keep a lightweight append-only log alongside the read model so local flows can be audited
-  // without reconstructing state diffs from the JSON snapshot.
   const event: IndexerEvent = {
     id: createId("evt"),
     type,
@@ -156,6 +157,36 @@ function nowUnix(): number {
   return Math.floor(Date.now() / 1000);
 }
 
+function toFixedAtomic(value: number): string {
+  return value.toFixed(6);
+}
+
+function calculatePlatformAndOwnerSplit(input: {
+  priceAtomic: string;
+  feeBps: number;
+  minFeeAtomic: string;
+}): { paidAmount: number; platformFee: number; ownerReceives: number } {
+  const paidAmount = parseAmount(input.priceAtomic);
+  if (!paidAmount) {
+    throw new Error("invalid_price");
+  }
+
+  if (!Number.isFinite(input.feeBps) || input.feeBps < 0 || input.feeBps > 10_000) {
+    throw new Error("invalid_campaign_fee_bps");
+  }
+
+  const minFee = Number(input.minFeeAtomic);
+  if (!Number.isFinite(minFee) || minFee < 0) {
+    throw new Error("invalid_min_campaign_fee");
+  }
+
+  const bpsFee = (paidAmount * input.feeBps) / 10_000;
+  const platformFee = Math.min(paidAmount, Math.max(minFee, bpsFee));
+  const ownerReceives = Math.max(0, paidAmount - platformFee);
+
+  return { paidAmount, platformFee, ownerReceives };
+}
+
 function buildMembershipMetadata(input: {
   club: Club;
   campaign: Campaign;
@@ -189,8 +220,6 @@ function mintMembershipAsset(input: {
   campaign: Campaign;
   membership: Membership;
 }): MintedMembershipAsset {
-  // The current web stack records a synthetic asset immediately so storefront and metadata routes
-  // already match the shape expected from a future on-chain mint/indexer pipeline.
   const metadata = buildMembershipMetadata(input);
   const assetId = createId("asset");
   return {
@@ -207,20 +236,32 @@ function mintMembershipAsset(input: {
 export function initializePlatform(config: {
   clubCreationFee: number;
   campaignCreationFee: number;
-  campaignFeeBps: number;
+  defaultCampaignFeeBps: number;
+  defaultMinCampaignFeeAtomic: string;
 }): PlatformConfig {
+  if (!Number.isFinite(config.defaultCampaignFeeBps) || config.defaultCampaignFeeBps < 0 || config.defaultCampaignFeeBps > 10_000) {
+    throw new Error("invalid_campaign_fee_bps");
+  }
+
+  const minFee = Number(config.defaultMinCampaignFeeAtomic);
+  if (!Number.isFinite(minFee) || minFee < 0) {
+    throw new Error("invalid_min_campaign_fee");
+  }
+
   const state = readStore();
   state.config = {
     initialized: true,
     clubCreationFee: config.clubCreationFee,
     campaignCreationFee: config.campaignCreationFee,
-    campaignFeeBps: config.campaignFeeBps,
+    defaultCampaignFeeBps: config.defaultCampaignFeeBps,
+    defaultMinCampaignFeeAtomic: toFixedAtomic(minFee),
   };
   writeStore(state);
   appendEvent("platform_initialized", {
     clubCreationFee: config.clubCreationFee,
     campaignCreationFee: config.campaignCreationFee,
-    campaignFeeBps: config.campaignFeeBps,
+    defaultCampaignFeeBps: config.defaultCampaignFeeBps,
+    defaultMinCampaignFeeAtomic: toFixedAtomic(minFee),
   });
   return state.config;
 }
@@ -232,8 +273,8 @@ export function getAdminOverview() {
     clubs: state.clubs.length,
     campaigns: state.campaigns.length,
     activeCampaigns: state.campaigns.filter((campaign) => campaign.status === "active").length,
-    incomingDepositsAtomic: state.ledger.incomingDeposits.toFixed(2),
-    platformBalanceAtomic: state.ledger.platformBalance.toFixed(2),
+    incomingDepositsAtomic: state.ledger.incomingDeposits.toFixed(6),
+    platformBalanceAtomic: state.ledger.platformBalance.toFixed(6),
     config: state.config,
   };
 }
@@ -258,6 +299,39 @@ export function findAssetById(assetId: string): MintedMembershipAsset | null {
   return readStore().assets.find((asset) => asset.assetId === assetId) ?? null;
 }
 
+export function setClubFeePolicy(input: {
+  clubId: string;
+  campaignFeeBps: number;
+  minCampaignFeeAtomic: string;
+}): Club {
+  const state = readStore();
+  const club = state.clubs.find((entry) => entry.id === input.clubId);
+  if (!club) {
+    throw new Error("club_not_found");
+  }
+
+  if (!Number.isFinite(input.campaignFeeBps) || input.campaignFeeBps < 0 || input.campaignFeeBps > 10_000) {
+    throw new Error("invalid_campaign_fee_bps");
+  }
+
+  const minFee = Number(input.minCampaignFeeAtomic);
+  if (!Number.isFinite(minFee) || minFee < 0) {
+    throw new Error("invalid_min_campaign_fee");
+  }
+
+  club.campaignFeeBps = input.campaignFeeBps;
+  club.minCampaignFeeAtomic = toFixedAtomic(minFee);
+
+  writeStore(state);
+  appendEvent("club_fee_policy_updated", {
+    clubId: club.id,
+    campaignFeeBps: club.campaignFeeBps,
+    minCampaignFeeAtomic: club.minCampaignFeeAtomic,
+  });
+
+  return club;
+}
+
 export function createClub(input: {
   slug: string;
   ownerWallet: string;
@@ -280,6 +354,8 @@ export function createClub(input: {
     slug: input.slug,
     ownerWallet: input.ownerWallet,
     metadataUri: input.metadataUri,
+    campaignFeeBps: state.config.defaultCampaignFeeBps,
+    minCampaignFeeAtomic: state.config.defaultMinCampaignFeeAtomic,
   };
 
   state.clubs.push(club);
@@ -292,6 +368,8 @@ export function createClub(input: {
     ownerWallet: club.ownerWallet,
     metadataUri: club.metadataUri,
     feePaid: input.feePaid,
+    campaignFeeBps: club.campaignFeeBps,
+    minCampaignFeeAtomic: club.minCampaignFeeAtomic,
   });
   return club;
 }
@@ -301,7 +379,6 @@ export function createCampaign(input: {
   ownerWallet: string;
   name: string;
   priceAtomic: string;
-  paymentToken: PaymentToken;
   templateImageUri: string;
   mintMode: MintMode;
   mintStartsAtUnix: number | null;
@@ -339,7 +416,7 @@ export function createCampaign(input: {
     clubId: input.clubId,
     name: input.name,
     priceAtomic: input.priceAtomic,
-    paymentToken: input.paymentToken,
+    paymentToken: "SOL",
     templateImageUri: input.templateImageUri,
     mintMode,
     mintStartsAtUnix: input.mintStartsAtUnix,
@@ -380,15 +457,8 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
   if (campaign.expiresAtUnix !== null && campaign.expiresAtUnix < nowUnix()) {
     throw new Error("campaign_expired");
   }
-  // Live-event campaigns share the same purchase endpoint, but minting is intentionally gated
-  // until the owner-defined event start time.
   if (campaign.mintMode === "live_event" && campaign.mintStartsAtUnix !== null && campaign.mintStartsAtUnix > nowUnix()) {
     throw new Error("mint_not_started");
-  }
-
-  const paidAmount = parseAmount(campaign.priceAtomic);
-  if (!paidAmount) {
-    throw new Error("invalid_price");
   }
 
   const club = state.clubs.find((entry) => entry.id === campaign.clubId);
@@ -396,8 +466,15 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
     throw new Error("club_not_found");
   }
 
+  const split = calculatePlatformAndOwnerSplit({
+    priceAtomic: campaign.priceAtomic,
+    feeBps: club.campaignFeeBps,
+    minFeeAtomic: club.minCampaignFeeAtomic,
+  });
+
   campaign.mintedSupply += 1;
-  state.ledger.incomingDeposits += paidAmount;
+  state.ledger.incomingDeposits += split.paidAmount;
+  state.ledger.platformBalance += split.platformFee;
 
   const membership: Membership = {
     id: createId("mship"),
@@ -429,8 +506,16 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
     nftMint: membership.nftMint,
     assetId: asset.assetId,
     metadataUri: asset.metadataUri,
-    paidAmount,
+    paidAmount: split.paidAmount,
+    platformFeeAtomic: toFixedAtomic(split.platformFee),
+    ownerReceivesAtomic: toFixedAtomic(split.ownerReceives),
   });
 
-  return { membership, asset, paidAmount };
+  return {
+    membership,
+    asset,
+    paidAmount: split.paidAmount,
+    platformFeeAtomic: toFixedAtomic(split.platformFee),
+    ownerReceivesAtomic: toFixedAtomic(split.ownerReceives),
+  };
 }

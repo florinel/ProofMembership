@@ -1,11 +1,33 @@
+# Dependencies
 node_modules/
-test-ledger/
-.next/
-dist/
-coverage/
-*.log
-.env
-.env.local
-.DS_Store
+
+# Rust / Anchor build artifacts
 target/
 .anchor/
+
+# Next.js
+.next/
+out/
+
+# Build outputs
+dist/
+coverage/
+
+# Local runtime data (read model, events, uploaded media, PID files)
+.solnft/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# Test infrastructure
+test-ledger/
+
+# OS
+.DS_Store
+Thumbs.db
