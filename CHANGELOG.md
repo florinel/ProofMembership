@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file.
 
 _Auto-generated from the local changelog watcher. Curated release notes should stay in the sections above._
 
-- No file changes recorded yet.
+- 2026-03-21 23:32:05.782 UTC - Updated `apps/web/src/app/(owner)/owner/page.tsx`
+- 2026-03-21 23:32:05.781 UTC - Updated `apps/web/src/app/(admin)/admin/clubs/[clubId]/page.tsx`
 <!-- AUTO-CHANGELOG-END -->
 
 ### Improvements
