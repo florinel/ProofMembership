@@ -79,7 +79,7 @@ export default function OwnerOnboardingClient({
           </label>
           <label>
             Club description
-            <textarea name="description" placeholder="Describe your golf, tennis, or sports club and membership plan." rows={4} />
+            <textarea name="description" placeholder="Describe your community (for example: sports membership club, rotary club, event series, fan membership, or alumni network) and membership plan." rows={4} />
           </label>
           <button className="btn-primary" type="submit">Submit Application</button>
         </form>

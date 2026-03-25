@@ -5,6 +5,7 @@ export interface Club {
   slug: string;
   ownerWallet: string;
   metadataUri: string;
+  onchainAddress?: string;
   campaignFeeBps: number;
   minCampaignFeeAtomic: string;
 }
@@ -20,6 +21,7 @@ export interface Campaign {
   priceAtomic: string;
   paymentToken: PaymentToken;
   templateImageUri: string;
+  onchainAddress?: string;
   mintMode: MintMode;
   mintStartsAtUnix: number | null;
   maxSupply: number | null;
@@ -35,6 +37,9 @@ export interface Membership {
   nftMint: string;
   assetId?: string;
   metadataUri?: string;
+  mintTxSignature?: string;
+  metadataAccount?: string;
+  tokenAccount?: string;
   purchasedAtUnix: number;
   expiresAtUnix: number | null;
   revoked: boolean;
@@ -68,5 +73,10 @@ export interface MintedMembershipAsset {
   compression: "bubblegum" | "none";
   metadataUri: string;
   metadata: MembershipNftMetadata;
+  mintAddress?: string;
+  metadataAccount?: string;
+  tokenAccount?: string;
+  mintTxSignature?: string;
+  provenance?: "synthetic_local" | "onchain";
   mintedAtUnix: number;
 }

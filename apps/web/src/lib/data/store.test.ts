@@ -9,8 +9,10 @@ import {
   initializePlatform,
   listCampaignsByClub,
   listMembershipsByWallet,
+  projectOnchainMembershipPurchase,
   purchaseMembership,
   rejectOwnerApplication,
+  setCampaignOnchainAddress,
   submitOwnerApplication,
 } from "@/lib/data/store";
 
@@ -144,8 +146,48 @@ describe("store lifecycle", () => {
     const memberships = listMembershipsByWallet("buyer-wallet-1");
 
     expect(purchase.paidAmount).toBe(2.5);
+    expect(purchase.asset.provenance).toBe("synthetic_local");
+    expect(purchase.asset.mintAddress).toBe(purchase.membership.nftMint);
     expect(campaigns.find((entry) => entry.id === campaign.id)?.mintedSupply).toBe(1);
     expect(memberships.length).toBe(1);
+  });
+
+  it("sets campaign onchain address mapping", () => {
+    initializePlatform({
+      ownerApprovalFee: 0.5,
+      clubCreationFee: 1,
+      campaignCreationFee: 0.5,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
+    });
+
+    approveOwner("owner-wallet-onchain-map");
+
+    const club = createClub({
+      slug: "map-club",
+      ownerWallet: "owner-wallet-onchain-map",
+      metadataUri: "https://example.com/map-club.json",
+      feePaid: 1,
+    });
+
+    const campaign = createCampaign({
+      clubId: club.id,
+      ownerWallet: "owner-wallet-onchain-map",
+      name: "Mapped Campaign",
+      priceAtomic: "2",
+      templateImageUri: "https://example.com/map-template.png",
+      mintMode: "on_purchase",
+      mintStartsAtUnix: null,
+      maxSupply: null,
+      expiresAtUnix: null,
+    });
+
+    const mapped = setCampaignOnchainAddress({
+      campaignId: campaign.id,
+      onchainAddress: "6Q8Yg3vBf2iM7mWqL4nXbYd9pQk2tRj6hJ4sN8zP1cVa",
+    });
+
+    expect(mapped.onchainAddress).toBe("6Q8Yg3vBf2iM7mWqL4nXbYd9pQk2tRj6hJ4sN8zP1cVa");
   });
 
   it("rejects campaign creation without template image", () => {
@@ -244,5 +286,93 @@ describe("store lifecycle", () => {
         buyerWallet: "buyer-wallet-live",
       })
     ).toThrowError("mint_not_started");
+  });
+
+  it("projects confirmed onchain purchase into membership read model", () => {
+    initializePlatform({
+      ownerApprovalFee: 0.5,
+      clubCreationFee: 1,
+      campaignCreationFee: 0.5,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
+    });
+
+    approveOwner("owner-wallet-proj");
+
+    const club = createClub({
+      slug: "onchain-proj",
+      ownerWallet: "owner-wallet-proj",
+      metadataUri: "https://example.com/onchain-proj.json",
+      feePaid: 1,
+    });
+
+    const campaign = createCampaign({
+      clubId: club.id,
+      ownerWallet: "owner-wallet-proj",
+      name: "Onchain Projection Campaign",
+      priceAtomic: "1.75",
+      templateImageUri: "https://example.com/onchain-template.png",
+      mintMode: "on_purchase",
+      mintStartsAtUnix: null,
+      maxSupply: null,
+      expiresAtUnix: null,
+    });
+
+    const projection = projectOnchainMembershipPurchase({
+      campaignId: campaign.id,
+      buyerWallet: "buyer-wallet-proj",
+      txSignature: "2cM7p8xS5xvJ9w1bA4mKpQ8rY2tN6dL3uV1hF7zR9qEw",
+    });
+
+    const memberships = listMembershipsByWallet("buyer-wallet-proj");
+    expect(projection.paidAmount).toBe(1.75);
+    expect(projection.membership.mintTxSignature).toBe("2cM7p8xS5xvJ9w1bA4mKpQ8rY2tN6dL3uV1hF7zR9qEw");
+    expect(projection.asset.provenance).toBe("onchain");
+    expect(memberships.length).toBe(1);
+  });
+
+  it("rejects duplicate tx signature projection", () => {
+    initializePlatform({
+      ownerApprovalFee: 0.5,
+      clubCreationFee: 1,
+      campaignCreationFee: 0.5,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
+    });
+
+    approveOwner("owner-wallet-dupe");
+
+    const club = createClub({
+      slug: "onchain-dupe",
+      ownerWallet: "owner-wallet-dupe",
+      metadataUri: "https://example.com/onchain-dupe.json",
+      feePaid: 1,
+    });
+
+    const campaign = createCampaign({
+      clubId: club.id,
+      ownerWallet: "owner-wallet-dupe",
+      name: "Onchain Duplicate Campaign",
+      priceAtomic: "2.00",
+      templateImageUri: "https://example.com/onchain-dupe-template.png",
+      mintMode: "on_purchase",
+      mintStartsAtUnix: null,
+      maxSupply: null,
+      expiresAtUnix: null,
+    });
+
+    projectOnchainMembershipPurchase({
+      campaignId: campaign.id,
+      buyerWallet: "buyer-wallet-dupe",
+      txSignature: "4Y2u9pWq6xB1kL8mR3tN7dC5vH2sE9fJ1aP6qZ3xT8n",
+    });
+
+    expect(() =>
+      projectOnchainMembershipPurchase({
+        campaignId: campaign.id,
+        buyerWallet: "buyer-wallet-dupe",
+        txSignature: "4Y2u9pWq6xB1kL8mR3tN7dC5vH2sE9fJ1aP6qZ3xT8n",
+      })
+    ).toThrowError("tx_signature_already_projected");
   });
 });

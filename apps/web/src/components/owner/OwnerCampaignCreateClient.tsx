@@ -81,14 +81,21 @@ export default function OwnerCampaignCreateClient({ initialOwnerWallet, preselec
       body: form,
     });
 
-    const data = (await response.json()) as { error?: string; mediaUri?: string };
+    const data = (await response.json()) as {
+      error?: string;
+      mediaUri?: string;
+      permanentUri?: string;
+      storage?: "local" | "arweave";
+    };
     if (!response.ok || !data.mediaUri) {
       setStatus(`Template upload failed: ${data.error ?? "unknown"}`);
       return;
     }
 
     setTemplateImageUri(data.mediaUri);
-    setStatus(`Template uploaded: ${data.mediaUri}`);
+    const storageLabel = data.storage ? ` (${data.storage})` : "";
+    const displayUri = data.permanentUri ?? data.mediaUri;
+    setStatus(`Template uploaded${storageLabel}: ${displayUri}`);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {

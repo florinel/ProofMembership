@@ -170,6 +170,19 @@ pnpm util:stop-all:local
 
 ## 8. Run the role and purchase flow
 
+Optional media storage mode for campaign template uploads:
+
+- `SOLNFT_MEDIA_PROVIDER=local|arweave` (default `local`)
+- `SOLNFT_ARWEAVE_UPLOAD_URL=https://...` (required for `arweave`)
+- `SOLNFT_ARWEAVE_API_KEY=...` (optional bearer token for uploader)
+
+Optional storefront purchase mode:
+
+- `SOLNFT_PURCHASE_MODE=local|onchain` (default `local`)
+- `SOLNFT_RPC_URL=http://127.0.0.1:8899` (required for `onchain`)
+- `SOLNFT_PROGRAM_ID=...` (required for `onchain`)
+- `SOLNFT_PLATFORM_TREASURY=...` (required for `onchain`)
+
 Open `http://localhost:3000`.
 
 ### Admin flow
@@ -194,8 +207,10 @@ Open `http://localhost:3000`.
 
 1. Open `/storefront`.
 2. Purchase the SOL campaign as the member wallet.
-3. Confirm new memberships appear in the table.
-4. Open `/api/metadata/[assetId]` for at least one purchased membership.
+3. In `onchain` mode, approve the wallet transaction prompt for Anchor `purchase_membership`.
+4. Confirm the status indicates transaction confirmation and projection success.
+5. Confirm new memberships appear in the table.
+6. Open `/api/metadata/[assetId]` for at least one purchased membership.
 
 ## 9. Validate local projections and uploaded media
 
@@ -212,7 +227,7 @@ Confirm:
 - platform config and balances update after admin actions
 - clubs and campaigns are persisted
 - membership purchases append memberships and assets
-- event log receives `platform_initialized`, `club_created`, `campaign_created`, and `membership_purchased`
+- event log receives `platform_initialized`, `club_created`, `campaign_created`, and purchase events (`membership_purchased` for local mode and `membership_onchain_projected` for on-chain confirmed mode)
 - uploaded template media exists in `.solnft/media`
 
 ## 10. Validate localnet chain-side effects

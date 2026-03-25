@@ -1,6 +1,15 @@
 {
     "chat.tools.terminal.autoApprove": {
         "corepack": true,
-        "pnpm": true
-    }
+        "pnpm": true,
+        "/^cd /home/flow/dev/solnft && node -e \"const c=require\\('crypto'\\);const d=c\\.createHash\\('sha256'\\)\\.update\\('global:purchase_membership'\\)\\.digest\\(\\)\\.subarray\\(0,8\\);console\\.log\\(Buffer\\.from\\(d\\)\\.toString\\('hex'\\)\\);\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /home/flow/dev/solnft && node - <<'NODE'\nconst web3 = require\\('@solana/web3\\.js'\\);\nconst program = new web3\\.PublicKey\\('3Ne2f2pLbgpsWL3v9xCDy6VjKmoqHjbBtEJL3a6tMuCs'\\);\nconst \\[pda\\] = web3\\.PublicKey\\.findProgramAddressSync\\(\\[Buffer\\.from\\('platform'\\)\\], program\\);\nconsole\\.log\\(pda\\.toBase58\\(\\)\\);\nNODE$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    },
+    "npm.packageManager": "pnpm"
 }

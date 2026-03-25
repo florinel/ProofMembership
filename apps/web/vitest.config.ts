@@ -6,6 +6,7 @@ export default defineConfig({
     environment: "node",
     environmentMatchGlobs: [["src/**/*.test.tsx", "jsdom"]],
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    fileParallelism: false,
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
   },

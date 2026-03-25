@@ -113,6 +113,34 @@ export default function AdminFlowClient() {
     setStatus("Club fee policy updated.");
   }
 
+  async function mapCampaignOnchainAddress(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const campaignId = String(form.get("campaignId") ?? "").trim();
+    const onchainAddress = String(form.get("onchainAddress") ?? "").trim();
+
+    if (!campaignId || !onchainAddress) {
+      setStatus("Campaign ID and onchain address are required.");
+      return;
+    }
+
+    setStatus("Saving campaign onchain address...");
+
+    const response = await fetch(`/api/admin/campaigns/${encodeURIComponent(campaignId)}/onchain-address`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ onchainAddress }),
+    });
+
+    const result = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      setStatus(`Map onchain address failed: ${result.error ?? "unknown"}`);
+      return;
+    }
+
+    setStatus("Campaign onchain address saved.");
+  }
+
   async function approveApplication(applicationId: string) {
     const feePaid = Number(approvalFeeById[applicationId] ?? overview?.config.ownerApprovalFee ?? 0);
     if (!applicationId) {
@@ -264,6 +292,22 @@ export default function AdminFlowClient() {
             <input name="minCampaignFeeAtomic" type="number" defaultValue="0.0003" step="0.000001" min="0" />
           </label>
           <button className="btn-primary" type="submit">Update Club Fees</button>
+        </form>
+      </section>
+
+      <section className="panel">
+        <h3>Map Campaign Onchain Address</h3>
+        <p>Required for `SOLNFT_PURCHASE_MODE=onchain` preflight.</p>
+        <form className="form-grid" onSubmit={mapCampaignOnchainAddress}>
+          <label>
+            Campaign ID
+            <input name="campaignId" type="text" placeholder="camp-..." />
+          </label>
+          <label>
+            Onchain campaign address
+            <input name="onchainAddress" type="text" placeholder="CampaignPda111..." />
+          </label>
+          <button className="btn-primary" type="submit">Save Mapping</button>
         </form>
       </section>
 

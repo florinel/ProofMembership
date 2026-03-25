@@ -2,7 +2,7 @@
 
 SolNFT is a club membership contract and web platform built on Solana.
 
-It is designed for sports clubs and communities such as golf clubs, tennis clubs, and similar membership organizations.
+It is designed for membership communities such as sports membership clubs, rotary clubs, event communities, fan groups, and other subscription-based organizations.
 
 ## What it does
 
@@ -35,6 +35,30 @@ Run web app:
 pnpm dev:web
 ```
 
+Optional media storage configuration for campaign template uploads:
+
+- `SOLNFT_MEDIA_PROVIDER=local|arweave` (default: `local`)
+- `SOLNFT_ARWEAVE_UPLOAD_URL=https://...` (required when provider is `arweave`)
+- `SOLNFT_ARWEAVE_API_KEY=...` (optional bearer token header for your uploader)
+
+When `SOLNFT_MEDIA_PROVIDER=arweave`, `/api/owner/template-upload` will send the image to your configured uploader endpoint and store the returned permanent URI as the campaign template image URI.
+
+Optional purchase mode configuration:
+
+- `SOLNFT_PURCHASE_MODE=local|onchain` (default: `local`)
+
+When using `SOLNFT_PURCHASE_MODE=onchain`, configure:
+
+- `SOLNFT_RPC_URL=https://...`
+- `SOLNFT_PROGRAM_ID=...`
+- `SOLNFT_PLATFORM_TREASURY=...`
+
+On-chain purchase mode also requires campaign-to-onchain account mapping (`campaign.onchainAddress`) in the read model.
+Use the admin panel section `Map Campaign Onchain Address` to set this mapping.
+
+`onchain` mode now builds and submits a real Anchor `purchase_membership` transaction from the storefront wallet.
+After confirmation, the web app calls `/api/storefront/purchase/confirm`, which verifies the transaction over RPC before projecting the membership into the local read model.
+
 Run tests:
 
 ```bash
@@ -65,4 +89,6 @@ pnpm util:stop-all:local
 ## Notes
 
 - Payment token in the current web flow is SOL.
-- Membership purchases create both a membership record and a synthetic membership asset metadata record.
+- The Anchor `purchase_membership` instruction now mints a real SPL NFT (mint + associated token account + mint_to) and records the mint address in membership state.
+- In `SOLNFT_PURCHASE_MODE=onchain`, the storefront builds/signs the Anchor purchase instruction and confirmation is validated from RPC before read-model projection.
+- The projected storefront membership record remains a local read-model projection (`provenance: onchain`) until a full indexer ingestion pipeline is wired.

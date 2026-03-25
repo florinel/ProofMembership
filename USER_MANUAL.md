@@ -51,6 +51,27 @@ Install dependencies from the repository root:
 pnpm install
 ```
 
+Optional campaign media storage configuration:
+
+- `SOLNFT_MEDIA_PROVIDER=local|arweave` (default: `local`)
+- `SOLNFT_ARWEAVE_UPLOAD_URL=https://...` (required for `arweave` mode)
+- `SOLNFT_ARWEAVE_API_KEY=...` (optional bearer token for your uploader)
+
+In `arweave` mode, the template upload API forwards files to your configured uploader and uses the returned permanent URI.
+
+Optional purchase mode configuration:
+
+- `SOLNFT_PURCHASE_MODE=local|onchain` (default: `local`)
+
+When using `onchain` mode, configure:
+
+- `SOLNFT_RPC_URL=https://...`
+- `SOLNFT_PROGRAM_ID=...`
+- `SOLNFT_PLATFORM_TREASURY=...`
+
+`onchain` mode now performs real wallet transaction wiring for Anchor `purchase_membership`.
+The storefront confirms the transaction, then calls `/api/storefront/purchase/confirm`, which validates transaction contents from RPC before membership projection.
+
 ### Optional backend prerequisites
 
 If you want to run Rust tests or Anchor commands as part of the workflow, also install:
@@ -162,8 +183,10 @@ Use `POST /api/auth/logout` to clear the signed session.
 2. Enter a buyer wallet label or address in `Buyer wallet`.
 3. Review the list of active campaigns.
 4. Click `Buy membership`.
-5. Confirm the new membership appears in `My memberships`.
-6. Follow the asset link to verify the metadata JSON served from `/api/metadata/[assetId]`.
+5. In `onchain` mode, approve the wallet transaction prompt.
+6. Wait for confirmation and read-model projection status.
+7. Confirm the new membership appears in `My memberships`.
+8. Follow the asset link to verify the metadata JSON served from `/api/metadata/[assetId]`.
 
 ## 6. Files created during usage
 
@@ -227,6 +250,8 @@ cargo test --manifest-path programs/membership_core/Cargo.toml split_handles_typ
 
 ## 9. Current implementation boundaries
 
-- The storefront creates a synthetic minted asset record and metadata endpoint; it is not yet a full marketplace-grade on-chain NFT mint pipeline.
+- The Anchor program purchase instruction supports real SPL NFT minting and the storefront now builds/signs this instruction in `onchain` mode.
+- The web confirmation path verifies transaction success, instruction discriminator, account ordering, writable flags, and treasury balance deltas from RPC before projection.
+- Membership rows shown in the web app are still read-model projections; full indexer-driven chain ingestion remains a separate follow-up.
 - The web read model is file-backed local storage, not a shared external database.
 - The indexer service is still a scaffold and does not yet provide a full ingestion/persistence stack.

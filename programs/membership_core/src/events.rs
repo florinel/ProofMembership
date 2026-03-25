@@ -20,5 +20,6 @@ pub struct MembershipPurchased {
     pub membership: Pubkey,
     pub campaign: Pubkey,
     pub buyer: Pubkey,
+    pub nft_mint: Pubkey,
     pub paid_amount: u64,
 }

@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{program::invoke, system_instruction};
+use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::token::{self, Mint, MintTo, Token, TokenAccount};
 
 use crate::{
     error::MembershipError,
@@ -8,13 +10,7 @@ use crate::{
     utils::calculate_platform_and_owner_split,
 };
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct PurchaseMembershipParams {
-    pub nft_mint: Pubkey,
-}
-
 #[derive(Accounts)]
-#[instruction(params: PurchaseMembershipParams)]
 pub struct PurchaseMembership<'info> {
     #[account(mut)]
     pub buyer: Signer<'info>,
@@ -31,15 +27,32 @@ pub struct PurchaseMembership<'info> {
     #[account(
         init,
         payer = buyer,
+        mint::decimals = 0,
+        mint::authority = platform_config,
+        mint::freeze_authority = platform_config
+    )]
+    pub nft_mint: Account<'info, Mint>,
+    #[account(
+        init,
+        payer = buyer,
+        associated_token::mint = nft_mint,
+        associated_token::authority = buyer
+    )]
+    pub buyer_nft_token_account: Account<'info, TokenAccount>,
+    #[account(
+        init,
+        payer = buyer,
         space = 8 + Membership::INIT_SPACE,
-        seeds = [b"membership", campaign.key().as_ref(), buyer.key().as_ref(), params.nft_mint.as_ref()],
+        seeds = [b"membership", campaign.key().as_ref(), buyer.key().as_ref(), nft_mint.key().as_ref()],
         bump
     )]
     pub membership: Account<'info, Membership>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<PurchaseMembership>, params: PurchaseMembershipParams) -> Result<()> {
+pub fn handler(ctx: Context<PurchaseMembership>) -> Result<()> {
     let clock = Clock::get()?;
     let campaign = &mut ctx.accounts.campaign;
     let club = &ctx.accounts.club;
@@ -106,12 +119,26 @@ pub fn handler(ctx: Context<PurchaseMembership>, params: PurchaseMembershipParam
         )?;
     }
 
+    let signer_seeds: &[&[&[u8]]] = &[&[b"platform", &[platform_config.bump]]];
+    token::mint_to(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.nft_mint.to_account_info(),
+                to: ctx.accounts.buyer_nft_token_account.to_account_info(),
+                authority: ctx.accounts.platform_config.to_account_info(),
+            },
+            signer_seeds,
+        ),
+        1,
+    )?;
+
     campaign.minted_supply = campaign.minted_supply.saturating_add(1);
 
     let membership = &mut ctx.accounts.membership;
     membership.owner = ctx.accounts.buyer.key();
     membership.campaign = campaign.key();
-    membership.nft_mint = params.nft_mint;
+    membership.nft_mint = ctx.accounts.nft_mint.key();
     membership.purchased_at_unix = clock.unix_timestamp;
     membership.expires_at_unix = campaign.expires_at_unix;
     membership.revoked = false;
@@ -121,6 +148,7 @@ pub fn handler(ctx: Context<PurchaseMembership>, params: PurchaseMembershipParam
         membership: membership.key(),
         campaign: campaign.key(),
         buyer: membership.owner,
+        nft_mint: membership.nft_mint,
         paid_amount: campaign.price,
     });
 

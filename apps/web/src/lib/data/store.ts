@@ -131,6 +131,14 @@ function readStore(): PlatformState {
   if (!Array.isArray(parsed.assets)) {
     parsed.assets = [];
   }
+  parsed.clubs = parsed.clubs.map((club) => ({
+    ...club,
+    onchainAddress: typeof club.onchainAddress === "string" ? club.onchainAddress : undefined,
+  }));
+  parsed.campaigns = parsed.campaigns.map((campaign) => ({
+    ...campaign,
+    onchainAddress: typeof campaign.onchainAddress === "string" ? campaign.onchainAddress : undefined,
+  }));
   if (typeof parsed.config.ownerApprovalFee !== "number" || !Number.isFinite(parsed.config.ownerApprovalFee) || parsed.config.ownerApprovalFee < 0) {
     parsed.config.ownerApprovalFee = initialState.config.ownerApprovalFee;
   }
@@ -248,18 +256,41 @@ function mintMembershipAsset(input: {
   club: Club;
   campaign: Campaign;
   membership: Membership;
+  standard?: "cnft" | "nft";
+  compression?: "bubblegum" | "none";
+  provenance?: "synthetic_local" | "onchain";
 }): MintedMembershipAsset {
   const metadata = buildMembershipMetadata(input);
   const assetId = createId("asset");
   return {
     assetId,
     membershipId: input.membership.id,
-    standard: "cnft",
-    compression: "bubblegum",
+    standard: input.standard ?? "cnft",
+    compression: input.compression ?? "bubblegum",
     metadataUri: `/api/metadata/${assetId}`,
     metadata,
+    mintAddress: input.membership.nftMint,
+    mintTxSignature: input.membership.mintTxSignature,
+    metadataAccount: input.membership.metadataAccount,
+    tokenAccount: input.membership.tokenAccount,
+    provenance: input.provenance ?? "synthetic_local",
     mintedAtUnix: nowUnix(),
   };
+}
+
+function assertCampaignPurchasable(campaign: Campaign): void {
+  if (campaign.status !== "active") {
+    throw new Error("campaign_not_active");
+  }
+  if (campaign.maxSupply !== null && campaign.mintedSupply >= campaign.maxSupply) {
+    throw new Error("campaign_sold_out");
+  }
+  if (campaign.expiresAtUnix !== null && campaign.expiresAtUnix < nowUnix()) {
+    throw new Error("campaign_expired");
+  }
+  if (campaign.mintMode === "live_event" && campaign.mintStartsAtUnix !== null && campaign.mintStartsAtUnix > nowUnix()) {
+    throw new Error("mint_not_started");
+  }
 }
 
 export function initializePlatform(config: {
@@ -451,6 +482,35 @@ export function listCampaignsByClub(clubId: string): Campaign[] {
   return readStore().campaigns.filter((campaign) => campaign.clubId === clubId);
 }
 
+export function findCampaignById(campaignId: string): Campaign | null {
+  return readStore().campaigns.find((campaign) => campaign.id === campaignId) ?? null;
+}
+
+export function setCampaignOnchainAddress(input: { campaignId: string; onchainAddress: string }): Campaign {
+  const campaignId = input.campaignId.trim();
+  const onchainAddress = input.onchainAddress.trim();
+  if (!campaignId) {
+    throw new Error("campaign_id_required");
+  }
+  if (!onchainAddress) {
+    throw new Error("onchain_address_required");
+  }
+
+  const state = readStore();
+  const campaign = state.campaigns.find((entry) => entry.id === campaignId);
+  if (!campaign) {
+    throw new Error("campaign_not_found");
+  }
+
+  campaign.onchainAddress = onchainAddress;
+  writeStore(state);
+  appendEvent("campaign_onchain_address_set", {
+    campaignId: campaign.id,
+    onchainAddress,
+  });
+  return campaign;
+}
+
 export function listMembershipsByWallet(wallet: string): Membership[] {
   return readStore().memberships.filter((membership) => membership.ownerWallet.toLowerCase() === wallet.toLowerCase());
 }
@@ -517,6 +577,7 @@ export function createClub(input: {
     slug: input.slug,
     ownerWallet: input.ownerWallet,
     metadataUri: input.metadataUri,
+    onchainAddress: undefined,
     campaignFeeBps: state.config.defaultCampaignFeeBps,
     minCampaignFeeAtomic: state.config.defaultMinCampaignFeeAtomic,
   };
@@ -581,6 +642,7 @@ export function createCampaign(input: {
     priceAtomic: input.priceAtomic,
     paymentToken: "SOL",
     templateImageUri: input.templateImageUri,
+    onchainAddress: undefined,
     mintMode,
     mintStartsAtUnix: input.mintStartsAtUnix,
     maxSupply: input.maxSupply,
@@ -611,18 +673,7 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
   if (!campaign) {
     throw new Error("campaign_not_found");
   }
-  if (campaign.status !== "active") {
-    throw new Error("campaign_not_active");
-  }
-  if (campaign.maxSupply !== null && campaign.mintedSupply >= campaign.maxSupply) {
-    throw new Error("campaign_sold_out");
-  }
-  if (campaign.expiresAtUnix !== null && campaign.expiresAtUnix < nowUnix()) {
-    throw new Error("campaign_expired");
-  }
-  if (campaign.mintMode === "live_event" && campaign.mintStartsAtUnix !== null && campaign.mintStartsAtUnix > nowUnix()) {
-    throw new Error("mint_not_started");
-  }
+  assertCampaignPurchasable(campaign);
 
   const club = state.clubs.find((entry) => entry.id === campaign.clubId);
   if (!club) {
@@ -657,6 +708,9 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
 
   membership.assetId = asset.assetId;
   membership.metadataUri = asset.metadataUri;
+  membership.mintTxSignature = undefined;
+  membership.metadataAccount = undefined;
+  membership.tokenAccount = undefined;
 
   state.memberships.push(membership);
   state.assets.push(asset);
@@ -680,5 +734,91 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
     paidAmount: split.paidAmount,
     platformFeeAtomic: toFixedAtomic(split.platformFee),
     ownerReceivesAtomic: toFixedAtomic(split.ownerReceives),
+  };
+}
+
+export function projectOnchainMembershipPurchase(input: {
+  campaignId: string;
+  buyerWallet: string;
+  txSignature: string;
+}): PurchaseResult {
+  const campaignId = input.campaignId.trim();
+  const buyerWallet = input.buyerWallet.trim();
+  const txSignature = input.txSignature.trim();
+
+  if (!campaignId || !buyerWallet || !txSignature) {
+    throw new Error("missing_required_fields");
+  }
+
+  const state = readStore();
+  const campaign = state.campaigns.find((entry) => entry.id === campaignId);
+  if (!campaign) {
+    throw new Error("campaign_not_found");
+  }
+  assertCampaignPurchasable(campaign);
+
+  if (state.memberships.some((membership) => membership.mintTxSignature === txSignature)) {
+    throw new Error("tx_signature_already_projected");
+  }
+
+  const paidAmount = parseAmount(campaign.priceAtomic);
+  if (!paidAmount) {
+    throw new Error("invalid_price");
+  }
+
+  const club = state.clubs.find((entry) => entry.id === campaign.clubId);
+  if (!club) {
+    throw new Error("club_not_found");
+  }
+
+  campaign.mintedSupply += 1;
+
+  const syntheticMint = `onchain-${txSignature.slice(0, 24)}`;
+  const membership: Membership = {
+    id: createId("mship"),
+    campaignId: campaign.id,
+    ownerWallet: buyerWallet,
+    nftMint: syntheticMint,
+    purchasedAtUnix: nowUnix(),
+    expiresAtUnix: campaign.expiresAtUnix,
+    revoked: false,
+    mintTxSignature: txSignature,
+    metadataAccount: undefined,
+    tokenAccount: undefined,
+  };
+
+  const asset = mintMembershipAsset({
+    club,
+    campaign,
+    membership,
+    standard: "nft",
+    compression: "none",
+    provenance: "onchain",
+  });
+
+  membership.assetId = asset.assetId;
+  membership.metadataUri = asset.metadataUri;
+
+  state.memberships.push(membership);
+  state.assets.push(asset);
+
+  writeStore(state);
+  appendEvent("membership_onchain_projected", {
+    membershipId: membership.id,
+    campaignId: membership.campaignId,
+    ownerWallet: membership.ownerWallet,
+    nftMint: membership.nftMint,
+    txSignature,
+    assetId: asset.assetId,
+    metadataUri: asset.metadataUri,
+    paidAmount,
+  });
+
+  return {
+    membership,
+    asset,
+    paidAmount,
+    platformFeeAtomic: toFixedAtomic(0),
+    ownerReceivesAtomic: toFixedAtomic(0),
   };
 }

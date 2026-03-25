@@ -10,7 +10,7 @@ pub mod utils;
 
 use crate::instructions::{
     CreateCampaign, CreateCampaignParams, CreateClub, CreateClubParams, InitializePlatform,
-    InitializePlatformParams, PurchaseMembership, PurchaseMembershipParams, SetClubFeePolicy,
+    InitializePlatformParams, PurchaseMembership, SetClubFeePolicy,
     SetClubFeePolicyParams,
 };
 #[allow(unused_imports)]
@@ -51,11 +51,8 @@ pub mod membership_core {
         instructions::create_campaign::handler(ctx, params)
     }
 
-    pub fn purchase_membership(
-        ctx: Context<PurchaseMembership>,
-        params: PurchaseMembershipParams,
-    ) -> Result<()> {
-        instructions::purchase_membership::handler(ctx, params)
+    pub fn purchase_membership(ctx: Context<PurchaseMembership>) -> Result<()> {
+        instructions::purchase_membership::handler(ctx)
     }
 
     pub fn set_club_fee_policy(
