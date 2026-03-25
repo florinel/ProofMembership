@@ -4,24 +4,10 @@ import bs58 from "bs58";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import type { SolanaProviderWithSignMessage } from "@/lib/types/solana";
 import { clearWalletSession, createWalletChallenge, verifyWalletSession } from "@/lib/auth/session";
 
 type SessionRole = "public" | "member" | "owner" | "admin";
-
-type SolanaSignResult = Uint8Array | { signature: Uint8Array };
-
-type SolanaProvider = {
-  publicKey?: { toBase58(): string };
-  connect: () => Promise<{ publicKey: { toBase58(): string } }>;
-  disconnect?: () => Promise<void>;
-  signMessage?: (message: Uint8Array, display?: "utf8" | "hex") => Promise<SolanaSignResult>;
-};
-
-declare global {
-  interface Window {
-    solana?: SolanaProvider;
-  }
-}
 
 export default function WalletConnectClient() {
   const [wallet, setWallet] = useState<string | null>(null);
@@ -40,16 +26,20 @@ export default function WalletConnectClient() {
     return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
   }, [wallet]);
 
-  function getProvider(): SolanaProvider {
+  function getProvider(): SolanaProviderWithSignMessage {
     if (typeof window === "undefined" || !window.solana) {
       throw new Error("No browser wallet found. Install Phantom or another Solana wallet extension.");
+    }
+
+    if (typeof window.solana.connect !== "function") {
+      throw new Error("Wallet does not support connect.");
     }
 
     if (typeof window.solana.signMessage !== "function") {
       throw new Error("Wallet does not support signMessage.");
     }
 
-    return window.solana;
+    return window.solana as SolanaProviderWithSignMessage;
   }
 
   async function connectAndSignIn() {

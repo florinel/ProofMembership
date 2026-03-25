@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import type { SolanaProvider } from "@/lib/types/solana";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import "./styles.css";
+
+// Global Solana provider type augmentation
+declare global {
+  interface Window {
+    solana?: SolanaProvider;
+  }
+}
 
 export const metadata: Metadata = {
   title: "SolNFT",

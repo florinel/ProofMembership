@@ -6,20 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { Campaign, Membership } from "@solnft/types";
 import type { OnchainPurchaseIntent } from "@/lib/chain/purchase";
 
-type SolanaSendResult = { signature: string } | string;
-
-type SolanaProvider = {
-  publicKey?: { toBase58(): string };
-  connect?: () => Promise<{ publicKey: { toBase58(): string } }>;
-  signAndSendTransaction?: (transaction: unknown, options?: { preflightCommitment?: string }) => Promise<SolanaSendResult>;
-};
-
-declare global {
-  interface Window {
-    solana?: SolanaProvider;
-  }
-}
-
 function formatExpiry(expiresAtUnix: number | null): string {
   if (!expiresAtUnix) {
     return "Never expires";
