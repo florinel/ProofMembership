@@ -31,14 +31,9 @@ function parseCookieRole(cookieHeader: string | null): AppRole | null {
 }
 
 export async function getRequestRole(): Promise<AppRole> {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get(getSessionCookieName())?.value;
-
-  if (sessionToken) {
-    const claims = await verifySessionToken(sessionToken);
-    if (claims) {
-      return claims.role;
-    }
+  const sessionClaims = await getSessionClaims();
+  if (sessionClaims) {
+    return sessionClaims.role;
   }
 
   if (process.env.NODE_ENV !== "production") {
@@ -55,6 +50,20 @@ export async function getRequestRole(): Promise<AppRole> {
   }
 
   return "public";
+}
+
+export async function getSessionClaims(): Promise<{ wallet: string; role: AppRole } | null> {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(getSessionCookieName())?.value;
+
+  if (sessionToken) {
+    const claims = await verifySessionToken(sessionToken);
+    if (claims) {
+      return claims;
+    }
+  }
+
+  return null;
 }
 
 export async function canAccess(requiredRole: AppRole): Promise<boolean> {

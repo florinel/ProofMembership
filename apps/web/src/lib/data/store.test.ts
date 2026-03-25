@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 
 import {
   __resetStoreForTests,
+  approveOwnerApplication,
   createCampaign,
   createClub,
   getAdminOverview,
@@ -9,7 +10,20 @@ import {
   listCampaignsByClub,
   listMembershipsByWallet,
   purchaseMembership,
+  submitOwnerApplication,
 } from "@/lib/data/store";
+
+function approveOwner(wallet: string): void {
+  const application = submitOwnerApplication({
+    wallet,
+    description: "Sports club owner application",
+  });
+
+  approveOwnerApplication({
+    applicationId: application.id,
+    feePaid: 0.5,
+  });
+}
 
 describe("store lifecycle", () => {
   beforeEach(() => {
@@ -18,6 +32,7 @@ describe("store lifecycle", () => {
 
   it("initializes platform config", () => {
     const config = initializePlatform({
+      ownerApprovalFee: 0.5,
       clubCreationFee: 2,
       campaignCreationFee: 0.7,
       defaultCampaignFeeBps: 800,
@@ -25,6 +40,7 @@ describe("store lifecycle", () => {
     });
 
     expect(config.initialized).toBe(true);
+    expect(config.ownerApprovalFee).toBe(0.5);
     expect(config.clubCreationFee).toBe(2);
     expect(config.campaignCreationFee).toBe(0.7);
     expect(config.defaultCampaignFeeBps).toBe(800);
@@ -32,11 +48,14 @@ describe("store lifecycle", () => {
 
   it("creates a club after sufficient fee", () => {
     initializePlatform({
+      ownerApprovalFee: 0.5,
       clubCreationFee: 1,
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
     });
+
+    approveOwner("owner-wallet-1");
 
     const club = createClub({
       slug: "new-club",
@@ -52,11 +71,14 @@ describe("store lifecycle", () => {
 
   it("auto-collects admin-defined campaign creation fee", () => {
     initializePlatform({
+      ownerApprovalFee: 0.5,
       clubCreationFee: 1,
       campaignCreationFee: 5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
     });
+
+    approveOwner("owner-wallet-2");
 
     const club = createClub({
       slug: "fee-test",
@@ -79,16 +101,19 @@ describe("store lifecycle", () => {
 
     const overview = getAdminOverview();
     expect(campaign.id.length).toBeGreaterThan(0);
-    expect(overview.platformBalanceAtomic).toBe("6.00");
+    expect(overview.platformBalanceAtomic).toBe("6.500000");
   });
 
   it("supports full create campaign and purchase flow", () => {
     initializePlatform({
+      ownerApprovalFee: 0.5,
       clubCreationFee: 1,
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
     });
+
+    approveOwner("owner-wallet-3");
 
     const club = createClub({
       slug: "flow-club",
@@ -124,11 +149,14 @@ describe("store lifecycle", () => {
 
   it("rejects campaign creation without template image", () => {
     initializePlatform({
+      ownerApprovalFee: 0.5,
       clubCreationFee: 1,
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
     });
+
+    approveOwner("owner-wallet-template");
 
     const club = createClub({
       slug: "template-required",
@@ -154,11 +182,14 @@ describe("store lifecycle", () => {
 
   it("blocks live mint purchase before start timestamp", () => {
     initializePlatform({
+      ownerApprovalFee: 0.5,
       clubCreationFee: 1,
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
     });
+
+    approveOwner("owner-wallet-live");
 
     const club = createClub({
       slug: "future-live",

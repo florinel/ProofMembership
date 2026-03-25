@@ -1,178 +1,68 @@
 # SolNFT
 
-SolNFT is a monorepo for a Solana membership platform. It combines:
+SolNFT is a club membership contract and web platform built on Solana.
 
-- an Anchor program in `programs/membership_core` for platform setup, club creation, campaign creation, and SOL/USDC membership purchases
-- a Next.js web app in `apps/web` with admin, owner, storefront, and dev-role flows
-- shared TypeScript contracts in `packages/types` and a small client wrapper in `packages/sdk`
-- a lightweight indexer scaffold in `services/indexer`
-- file-backed local persistence under `.solnft/` for the current web read model, event log, and uploaded media
+It is designed for sports clubs and communities such as golf clubs, tennis clubs, and similar membership organizations.
 
-## Repository structure
+## What it does
 
-- `apps/web` - Next.js 15 App Router application
-- `packages/types` - shared domain types for clubs, campaigns, memberships, assets, and auth-facing data
-- `packages/sdk` - fetch-based client for the web/API surface
-- `programs/membership_core` - Anchor program with SOL and USDC purchase instructions
-- `services/indexer` - event-normalization scaffold
-- `scripts` - local stack helper scripts
-- `tests/integration` - manual integration checklists
-- `USER_MANUAL.md` - operator/user workflow guide
-- `DEVNET_TESTING.md` - devnet deployment and verification runbook
-- `.github/copilot-instructions.md` - repository guidance for future Copilot sessions
+1. A club owner signs up and submits a club ownership application with a description.
+2. An admin reviews the application, approves it, charges an onboarding fee, and marks the wallet as an approved owner.
+3. The approved owner connects and can create one or more clubs.
+4. On each club creation, the configured club fee is paid to the platform account.
+5. The owner creates membership campaigns for each club.
+6. Members purchase campaigns in SOL, and the platform and owner fee split is applied.
 
-## Prerequisites
+## Repository layout
 
-For the web app and workspace:
+- apps/web: Next.js app with admin, owner, storefront, and API routes
+- programs/membership_core: Anchor contract for platform, club, campaign, and membership logic
+- packages/types: shared domain types
+- packages/sdk: thin fetch client
+- services/indexer: local indexer scaffold
 
-- Node 20+
-- pnpm 9+
+## Quick start
 
-For the Anchor program and backend tests:
-
-- Rust toolchain
-- Solana CLI
-- Anchor CLI
-
-## Installation
-
-From the repository root:
+Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-## Common commands
-
-### Web app
+Run web app:
 
 ```bash
 pnpm dev:web
-pnpm build:web
-pnpm lint:web
 ```
 
-### Tests
+Run tests:
 
 ```bash
 pnpm test:web:unit
 pnpm test:backend:unit
-anchor test --provider.cluster localnet
 ```
 
-Run a single web test file:
-
-```bash
-pnpm --filter @solnft/web test:unit -- src/lib/data/store.test.ts
-pnpm --filter @solnft/web test:unit -- src/components/owner/OwnerCampaignCreateClient.test.tsx
-```
-
-Run a single Rust test:
-
-```bash
-cargo test --manifest-path programs/membership_core/Cargo.toml split_handles_typical_fee
-```
-
-### Local stack helpers
+Start and stop the full local stack:
 
 ```bash
 pnpm util:clean-start:local
 pnpm util:stop-all:local
-pnpm util:watch:changelog
-pnpm --filter @solnft/indexer dev
 ```
 
-Use these scripts when you want to reset and restart the whole local stack cleanly:
+## Key routes
 
-- `pnpm util:clean-start:local` stops any existing local SolNFT processes, clears the persisted local read model, starts `solana-test-validator`, builds and deploys the Anchor program to localnet, then launches the indexer scaffold and web app.
-- `pnpm util:clean-start:local` also starts the local changelog watcher, which keeps the `## Unreleased` development activity section in `CHANGELOG.md` updated as watched files change.
-- `pnpm util:stop-all:local` stops the local validator, indexer, and web app processes and removes the generated local indexer state under `.solnft/indexer`.
-- `pnpm util:watch:changelog` runs the watcher by itself if you want changelog monitoring without starting the rest of the local stack.
+- /admin: platform setup, owner application approval, fee policy controls
+- /owner: ownership application, club creation, owner management views
+- /owner/campaigns/new: campaign creation flow for approved owners
+- /storefront: member purchase flow
 
-## Current architecture
+## Local data files
 
-### Web app
+- .solnft/indexer/read-model.json
+- .solnft/indexer/events.json
+- .solnft/media/
 
-`apps/web` is a role-based Next.js App Router application with these primary routes:
+## Notes
 
-- `/admin` - admin overview, platform initialization, club creation, and club drill-down
-- `/owner` - owner dashboard with campaign overview
-- `/owner/campaigns/new` - owner campaign creation flow
-- `/storefront` - browse campaigns, purchase memberships, and view purchased assets
-- `/dev` - non-production role switcher for route-gated UI work
-
-The app also exposes API routes for:
-
-- admin actions: `/api/admin/platform/init`, `/api/admin/clubs`, `/api/admin/overview`
-- owner actions: `/api/owner/campaigns`, `/api/owner/template-upload`
-- public reads: `/api/clubs`, `/api/clubs/[clubId]`, `/api/clubs/[clubId]/campaigns`, `/api/memberships/[wallet]`
-- storefront/media reads: `/api/storefront/purchase`, `/api/metadata/[assetId]`, `/api/media/[mediaId]`
-- auth: `/api/auth/challenge`, `/api/auth/verify`, `/api/auth/logout`, `/api/auth/dev-role`
-
-### Local read model and media storage
-
-The current web implementation uses local persisted files instead of a database:
-
-- `.solnft/indexer/read-model.json` - clubs, campaigns, memberships, config, assets, and ledger snapshot
-- `.solnft/indexer/events.json` - append-only event log used as a simple indexer projection trail
-- `.solnft/media/` - uploaded campaign template images and metadata sidecars
-
-This keeps the flows testable end to end without requiring a separate database while the indexer layer is still being built out.
-
-### Shared packages
-
-- `packages/types` defines the shared contracts for `Club`, `Campaign`, `Membership`, minted asset metadata, roles, payment tokens, and mint modes.
-- `packages/sdk` wraps the API surface with a `PlatformClient` so callers do not duplicate fetch paths.
-
-### Anchor program
-
-`programs/membership_core` holds the on-chain model:
-
-- `initialize_platform` stores treasury, USDC mint, fee configuration, and authority
-- `create_club` collects the platform club-creation fee and creates a club PDA
-- `create_campaign` collects the campaign-creation fee and creates a campaign PDA
-- `purchase_membership` handles SOL purchases with platform/owner fee splitting
-- `purchase_membership_usdc` handles USDC purchases with SPL token transfers
-
-The payment split logic is centralized in `src/utils.rs`, and successful state transitions emit events from `src/events.rs`.
-
-## Current product flow
-
-1. Admin initializes platform fees and treasury configuration.
-2. Admin creates a club for an owner once the club fee is paid.
-3. Owner uploads a campaign template image and creates a campaign.
-4. Storefront users browse active campaigns and purchase memberships.
-5. The purchase flow records a membership plus a synthetic minted-asset record with metadata served from `/api/metadata/[assetId]`.
-
-## Auth and role model
-
-Two auth paths exist today:
-
-- development cookie role switching through `/dev` and `/api/auth/dev-role`
-- wallet challenge + signature verification through `/api/auth/challenge` and `/api/auth/verify`, which issues a signed session cookie
-
-Role resolution currently works like this:
-
-- admin wallets come from `SOLNFT_ADMIN_WALLETS`
-- owner role is inferred from club ownership in the local read model
-- member role is inferred from non-revoked memberships in the local read model
-
-## Testing coverage
-
-### Web unit tests
-
-The current Vitest suite covers:
-
-- `src/lib/data/store.test.ts` for platform initialization, fee collection, campaign creation, live mint gating, and purchase lifecycle
-- `src/components/owner/OwnerCampaignCreateClient.test.tsx` for owner campaign form behavior
-
-### Backend tests
-
-The Rust test suite in `programs/membership_core/src/utils.rs` covers fee-split math and guard conditions for basis-point handling.
-
-## Related docs
-
-- `USER_MANUAL.md` for the day-to-day product workflow
-- `DEVNET_TESTING.md` for deploying and validating the stack on devnet
-- `tests/integration/*.md` for scenario-specific manual verification checklists
-- `.github/copilot-instructions.md` for repository-specific Copilot guidance
+- Payment token in the current web flow is SOL.
+- Membership purchases create both a membership record and a synthetic membership asset metadata record.

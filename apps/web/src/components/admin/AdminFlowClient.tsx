@@ -3,6 +3,8 @@
 import { FormEvent, useState } from "react";
 
 type AdminOverviewResponse = {
+  approvedOwners: number;
+  pendingOwnerApplications: number;
   owners: number;
   clubs: number;
   campaigns: number;
@@ -11,6 +13,7 @@ type AdminOverviewResponse = {
   platformBalanceAtomic: string;
   config: {
     initialized: boolean;
+    ownerApprovalFee: number;
     clubCreationFee: number;
     campaignCreationFee: number;
     defaultCampaignFeeBps: number;
@@ -18,21 +21,31 @@ type AdminOverviewResponse = {
   };
 };
 
-type ClubResponse = {
+type OwnerApplicationResponse = {
   id: string;
-  slug: string;
-  ownerWallet: string;
-  metadataUri: string;
+  wallet: string;
+  description: string;
+  status: "pending" | "approved" | "rejected";
 };
 
 export default function AdminFlowClient() {
   const [status, setStatus] = useState("Ready");
   const [overview, setOverview] = useState<AdminOverviewResponse | null>(null);
+  const [pendingApplications, setPendingApplications] = useState<OwnerApplicationResponse[]>([]);
 
   async function refreshOverview() {
-    const response = await fetch("/api/admin/overview");
-    const data = (await response.json()) as AdminOverviewResponse;
-    setOverview(data);
+    const [overviewResponse, applicationsResponse] = await Promise.all([
+      fetch("/api/admin/overview"),
+      fetch("/api/admin/owner-applications"),
+    ]);
+
+    const overviewData = (await overviewResponse.json()) as AdminOverviewResponse;
+    const applicationsData = (await applicationsResponse.json()) as {
+      pending?: OwnerApplicationResponse[];
+    };
+
+    setOverview(overviewData);
+    setPendingApplications(applicationsData.pending ?? []);
   }
 
   async function initializePlatform(event: FormEvent<HTMLFormElement>) {
@@ -44,6 +57,7 @@ export default function AdminFlowClient() {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
+        ownerApprovalFee: Number(form.get("ownerApprovalFee") ?? 0.5),
         clubCreationFee: Number(form.get("clubCreationFee") ?? 1),
         campaignCreationFee: Number(form.get("campaignCreationFee") ?? 0.5),
         defaultCampaignFeeBps: Number(form.get("defaultCampaignFeeBps") ?? 200),
@@ -89,29 +103,32 @@ export default function AdminFlowClient() {
     setStatus("Club fee policy updated.");
   }
 
-  async function createClub(event: FormEvent<HTMLFormElement>) {
+  async function approveApplication(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    setStatus("Creating club...");
+    const applicationId = String(form.get("applicationId") ?? "").trim();
+    if (!applicationId) {
+      setStatus("Application ID is required.");
+      return;
+    }
 
-    const response = await fetch("/api/admin/clubs", {
+    setStatus("Approving owner application...");
+
+    const response = await fetch(`/api/admin/owner-applications/${encodeURIComponent(applicationId)}/approve`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        slug: String(form.get("slug") ?? ""),
-        ownerWallet: String(form.get("ownerWallet") ?? ""),
-        metadataUri: String(form.get("metadataUri") ?? ""),
         feePaid: Number(form.get("feePaid") ?? 0),
       }),
     });
 
-    const result = (await response.json()) as { error?: string; club?: ClubResponse };
+    const result = (await response.json()) as { error?: string };
     if (!response.ok) {
-      setStatus(`Create club failed: ${result.error ?? "unknown"}`);
+      setStatus(`Owner approval failed: ${result.error ?? "unknown"}`);
       return;
     }
 
-    setStatus(`Created club ${result.club?.slug ?? ""}. Reload /admin to see it in table.`);
+    setStatus("Owner application approved.");
     await refreshOverview();
   }
 
@@ -120,6 +137,10 @@ export default function AdminFlowClient() {
       <section className="panel">
         <h3>Initialize Platform</h3>
         <form className="form-grid" onSubmit={initializePlatform}>
+          <label>
+            Owner approval fee
+            <input name="ownerApprovalFee" type="number" defaultValue="0.5" step="0.01" min="0" />
+          </label>
           <label>
             Club creation fee
             <input name="clubCreationFee" type="number" defaultValue="1" step="0.01" min="0.01" />
@@ -141,26 +162,30 @@ export default function AdminFlowClient() {
       </section>
 
       <section className="panel">
-        <h3>Create Club</h3>
-        <form className="form-grid" onSubmit={createClub}>
+        <h3>Approve Owner Application</h3>
+        <form className="form-grid" onSubmit={approveApplication}>
           <label>
-            Club slug
-            <input name="slug" type="text" placeholder="elite-surf-club" />
-          </label>
-          <label>
-            Club owner wallet
-            <input name="ownerWallet" type="text" placeholder="OwnerWallet111" />
-          </label>
-          <label>
-            Metadata URI
-            <input name="metadataUri" type="text" placeholder="https://example.com/club.json" />
+            Application ID
+            <input name="applicationId" type="text" placeholder="oapp-..." />
           </label>
           <label>
             Fee paid
-            <input name="feePaid" type="number" step="0.01" defaultValue="1" />
+            <input name="feePaid" type="number" step="0.01" defaultValue="0.5" min="0" />
           </label>
-          <button className="btn-primary" type="submit">Create Club</button>
+          <button className="btn-primary" type="submit">Approve Application</button>
         </form>
+        {pendingApplications.length ? (
+          <div className="stack-sm">
+            <p><strong>Pending applications</strong></p>
+            {pendingApplications.map((application) => (
+              <p key={application.id}>
+                {application.id} | {application.wallet} | {application.description}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p>No pending owner applications.</p>
+        )}
       </section>
 
       <section className="panel">
@@ -189,10 +214,13 @@ export default function AdminFlowClient() {
         {overview ? (
           <div className="stack-sm">
             <p>Initialized: {String(overview.config.initialized)}</p>
+            <p>Owner approval fee: {overview.config.ownerApprovalFee}</p>
             <p>Club Fee: {overview.config.clubCreationFee}</p>
             <p>Campaign Fee: {overview.config.campaignCreationFee}</p>
             <p>Default Campaign BPS: {overview.config.defaultCampaignFeeBps}</p>
             <p>Default Min Campaign Fee: {overview.config.defaultMinCampaignFeeAtomic} SOL</p>
+            <p>Approved owners: {overview.approvedOwners}</p>
+            <p>Pending owner applications: {overview.pendingOwnerApplications}</p>
             <p>Platform Balance: {overview.platformBalanceAtomic}</p>
           </div>
         ) : null}

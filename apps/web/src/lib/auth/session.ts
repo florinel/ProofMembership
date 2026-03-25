@@ -50,7 +50,7 @@ export async function verifyWalletSession(payload: {
   nonce: string;
   message: string;
   signature: string;
-}): Promise<void> {
+}): Promise<{ wallet: string; role: "public" | "member" | "owner" | "admin" }> {
   const response = await fetch("/api/auth/verify", {
     method: "POST",
     headers: {
@@ -62,6 +62,20 @@ export async function verifyWalletSession(payload: {
   if (!response.ok) {
     throw new Error("Failed to verify wallet signature");
   }
+
+  const data = (await response.json()) as {
+    wallet?: string;
+    role?: "public" | "member" | "owner" | "admin";
+  };
+
+  if (!data.wallet || !data.role) {
+    throw new Error("Invalid verify response");
+  }
+
+  return {
+    wallet: data.wallet,
+    role: data.role,
+  };
 }
 
 export async function clearWalletSession(): Promise<void> {

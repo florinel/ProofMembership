@@ -9,13 +9,12 @@ All notable changes to this project will be documented in this file.
 
 _Auto-generated from the local changelog watcher. Curated release notes should stay in the sections above._
 
-- 2026-03-21 23:32:05.782 UTC - Updated `apps/web/src/app/(owner)/owner/page.tsx`
-- 2026-03-21 23:32:05.781 UTC - Updated `apps/web/src/app/(admin)/admin/clubs/[clubId]/page.tsx`
+- No file changes recorded yet.
 <!-- AUTO-CHANGELOG-END -->
 
 ### Improvements
 
-- Refreshed the repository documentation to match the current product state, including the role-based web app, wallet-auth flow, local read-model storage, media upload flow, and SOL/USDC purchase paths.
+- Refreshed the repository documentation to match the current product state, including the role-based web app, wallet-auth flow, local read-model storage, media upload flow, and SOL purchase paths.
 - Expanded the main README with clearer setup, architecture, test commands, single-test examples, and local stack helper usage.
 - Added clearer operator guidance in `USER_MANUAL.md` and `DEVNET_TESTING.md`, including clean start/stop scripts and end-to-end validation steps.
 - Updated `.github/copilot-instructions.md` so future Copilot sessions use the current repository structure, commands, and architectural conventions.

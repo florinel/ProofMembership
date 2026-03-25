@@ -10,6 +10,7 @@ name = "membership_core"
 
 [features]
 default = []
+anchor-debug = []
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []

@@ -119,25 +119,37 @@ Use `POST /api/auth/logout` to clear the signed session.
 ### Step B: create a club
 
 1. Stay on `/admin`.
-2. In `Create Club`, enter:
-   - club slug
-   - owner wallet
-   - metadata URI
+2. In `Approve Owner Application`, enter:
+  - application ID
    - fee paid
-3. Submit the form.
-4. Confirm the club appears in the admin table.
-5. Open the club link to inspect `/admin/clubs/[clubId]`.
+3. Submit the form to approve the owner wallet.
 
-### Step C: create a campaign as owner
+### Step C: apply and create a club as owner
 
 1. Set the role to owner from `/dev`.
-2. Open `/owner/campaigns/new`.
+2. Open `/owner`.
+3. In `Apply for Club Ownership`, enter:
+  - wallet
+  - club description
+4. Submit the application and copy the returned application ID.
+5. Ask admin to approve the application.
+6. In `Create Club`, enter:
+  - approved owner wallet
+  - club slug
+  - metadata URI
+  - fee paid
+7. Submit the form.
+8. Confirm the club appears in owner and admin views.
+
+### Step D: create a campaign as owner
+
+1. Open `/owner/campaigns/new`.
 3. Enter the owner wallet that matches an existing club.
 4. Confirm the club dropdown populates from owned clubs.
 5. Set:
    - campaign name
    - price
-   - payment token (`SOL` or `USDC`)
+  - payment token (`SOL`)
    - mint mode (`on_purchase` or `live_event`)
    - optional live mint start timestamp
    - template image URI or upload a template image
@@ -146,7 +158,7 @@ Use `POST /api/auth/logout` to clear the signed session.
 6. Submit the form.
 7. Return to `/owner` to review the campaign in the owner table.
 
-### Step D: purchase from storefront
+### Step E: purchase from storefront
 
 1. Open `/storefront`.
 2. Enter a buyer wallet label or address in `Buyer wallet`.

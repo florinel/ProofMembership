@@ -136,19 +136,84 @@ a {
   cursor: pointer;
 }
 
+.btn-secondary {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.wallet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
 .stack-sm {
   display: grid;
   gap: 0.3rem;
   margin-top: 0.75rem;
 }
 
-.theme-toggle {
+.accordion-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.accordion-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem;
+  background: color-mix(in srgb, var(--surface) 92%, var(--bg-accent) 8%);
+}
+
+.accordion-item summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-weight: 700;
+}
+
+.accordion-item[open] summary {
+  margin-bottom: 0.7rem;
+}
+
+.top-controls {
   position: fixed;
   right: 1rem;
   top: 1rem;
   display: inline-flex;
+  gap: 0.5rem;
   align-items: center;
   z-index: 20;
+}
+
+.connect-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.4rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 0.9rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: 0 6px 18px var(--shadow);
+}
+
+.connect-pill:hover {
+  border-color: var(--accent);
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid var(--border);
   border-radius: 999px;
   width: 2.4rem;

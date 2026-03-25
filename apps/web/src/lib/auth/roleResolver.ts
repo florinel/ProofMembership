@@ -1,5 +1,5 @@
 import type { AppRole } from "@/lib/auth/roles";
-import { listClubs, listMembershipsByWallet } from "@/lib/data/store";
+import { isApprovedOwner, listMembershipsByWallet } from "@/lib/data/store";
 
 function getAdminWalletSet(): Set<string> {
   const fromEnv = (process.env.SOLNFT_ADMIN_WALLETS ?? "")
@@ -19,8 +19,7 @@ export function resolveRoleForWallet(wallet: string): AppRole {
     return "admin";
   }
 
-  const ownsClub = listClubs().some((club) => club.ownerWallet.toLowerCase() === normalized);
-  if (ownsClub) {
+  if (isApprovedOwner(wallet)) {
     return "owner";
   }
 

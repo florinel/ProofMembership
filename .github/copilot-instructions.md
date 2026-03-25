@@ -24,7 +24,7 @@
 - `apps/web/tsconfig.json` maps `@solnft/types` and `@solnft/sdk` directly to workspace source files. When changing shared types, update the packages first and let the app compile against source.
 - Auth is split into two tracks: a development-only role cookie for local UI work and a wallet-challenge flow that issues a signed session cookie. The server resolves role from `SOLNFT_ADMIN_WALLETS`, existing club ownership, and existing non-revoked memberships in the current read model.
 - `programs/membership_core` follows a consistent Anchor layout: `lib.rs` dispatches entrypoints, `instructions/*.rs` contains one instruction per file, `state.rs` holds accounts/enums, `events.rs` defines emitted events, `error.rs` defines program errors, and `utils.rs` holds fee-splitting helpers.
-- The on-chain lifecycle is: initialize platform -> create club -> create campaign -> purchase membership in SOL or USDC. The same concepts also appear in the web store, shared TypeScript types, user docs, and manual integration plans.
+- The on-chain lifecycle is: initialize platform -> create club -> create campaign -> purchase membership in SOL. The same concepts also appear in the web store, shared TypeScript types, user docs, and manual integration plans.
 
 ## Key conventions
 
@@ -36,5 +36,5 @@
 - Membership purchases in the web layer currently create both a `Membership` record and a synthetic `MintedMembershipAsset` record. Preserve that pairing when changing storefront or metadata behavior.
 - Keep the Anchor program organized one instruction per file with a `Params` struct, an `Accounts` struct, and a `handler` function. `lib.rs` should remain a thin dispatcher.
 - Follow the existing PDA seed scheme: platform uses `b"platform"`, clubs use `b"club" + owner + slug`, campaigns use `b"campaign" + club + name`, and memberships use `b"membership" + campaign + buyer + nft_mint`.
-- Fee handling is centralized. Platform fee configuration lives in `PlatformConfig`, and SOL/USDC purchase flows both use the shared split calculation in `src/utils.rs`.
+- Fee handling is centralized. Platform fee configuration lives in `PlatformConfig`, and purchase flows use the shared split calculation in `src/utils.rs`.
 - When documenting or testing the system, use `USER_MANUAL.md`, `DEVNET_TESTING.md`, and `tests/integration/*.md` as the current scenario guides instead of reconstructing flows from memory.

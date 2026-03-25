@@ -11,11 +11,22 @@ function formatExpiry(expiresAtUnix: number | null): string {
   return `Valid until ${new Date(expiresAtUnix * 1000).toISOString().slice(0, 10)}`;
 }
 
-export default function StorefrontFlowClient() {
+type StorefrontFlowClientProps = {
+  initialWallet?: string;
+};
+
+export default function StorefrontFlowClient({ initialWallet }: StorefrontFlowClientProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [wallet, setWallet] = useState("member-wallet-1");
+  const [wallet, setWallet] = useState(initialWallet ?? "member-wallet-1");
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [status, setStatus] = useState("Ready");
+
+  useEffect(() => {
+    if (initialWallet) {
+      setWallet(initialWallet);
+      setStatus("Buyer wallet loaded from connected wallet session.");
+    }
+  }, [initialWallet]);
 
   async function loadCampaigns() {
     const clubsResponse = await fetch("/api/clubs");
@@ -79,6 +90,7 @@ export default function StorefrontFlowClient() {
             placeholder="member-wallet-1"
           />
         </label>
+        {initialWallet ? <p className="kicker">Using connected wallet session as default buyer wallet.</p> : null}
         <button type="button" className="btn-primary" onClick={() => void loadMemberships(wallet)}>Load memberships</button>
       </div>
 

@@ -178,24 +178,25 @@ Open `http://localhost:3000`.
 
 1. Use `/dev` to set the admin role for local UI gating, or use the wallet-auth APIs to establish a signed session.
 2. Open `/admin`.
-3. Initialize the platform with club fee, campaign fee, and campaign fee BPS.
-4. Create a club for the owner wallet.
+3. Initialize the platform with owner approval fee, club fee, campaign fee, and campaign fee BPS.
+4. Approve a pending owner application.
 
 ### Owner flow
 
 1. Switch to owner role.
-2. Open `/owner/campaigns/new`.
-3. Upload a template image or provide a template URI.
-4. Create one SOL campaign and one USDC campaign.
-5. Optionally create a `live_event` campaign to verify mint-start gating.
+2. Open `/owner` and submit an ownership application with wallet + description.
+3. After admin approval, create a club as the approved owner.
+4. Open `/owner/campaigns/new`.
+5. Upload a template image or provide a template URI.
+6. Create one or more SOL campaigns.
+7. Optionally create a `live_event` campaign to verify mint-start gating.
 
 ### Storefront flow
 
 1. Open `/storefront`.
 2. Purchase the SOL campaign as the member wallet.
-3. Purchase the USDC campaign as the member wallet.
-4. Confirm the new memberships appear in the table.
-5. Open the linked `/api/metadata/[assetId]` response for at least one purchased membership.
+3. Confirm the new memberships appear in the table.
+4. Open the linked `/api/metadata/[assetId]` response for at least one purchased membership.
 
 ## 10. Validate local projections and uploaded media
 
@@ -225,13 +226,7 @@ solana balance PLATFORM_TREASURY_PUBKEY
 solana balance OWNER_TREASURY_PUBKEY
 ```
 
-For USDC purchases, also verify the SPL token accounts used for:
-
-- buyer payment account
-- owner payment account
-- platform payment account
-
-The USDC instruction expects all three token accounts to use the `usdc_mint` stored in `PlatformConfig`.
+For SOL purchases, verify platform and owner balances update according to configured fee policy.
 
 ## 12. Negative tests
 
@@ -250,8 +245,9 @@ Run these intentionally:
 - program builds and deploys to devnet
 - admin, owner, and member wallets are funded
 - platform initialization succeeds
+- owner application approval succeeds
 - club creation succeeds
-- one SOL campaign and one USDC campaign are created
+- one or more SOL campaigns are created
 - at least one membership is purchased successfully
 - metadata is served from `/api/metadata/[assetId]`
 - `.solnft/indexer/read-model.json` and `.solnft/indexer/events.json` reflect the actions

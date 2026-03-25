@@ -11,15 +11,27 @@ type ClubSummary = {
   minCampaignFeeAtomic: string;
 };
 
-export default function OwnerCampaignCreateClient() {
+type OwnerCampaignCreateClientProps = {
+  initialOwnerWallet?: string;
+  preselectedClubId?: string;
+};
+
+export default function OwnerCampaignCreateClient({ initialOwnerWallet, preselectedClubId }: OwnerCampaignCreateClientProps) {
   const [status, setStatus] = useState("Ready");
-  const [ownerWallet, setOwnerWallet] = useState("");
+  const [ownerWallet, setOwnerWallet] = useState(initialOwnerWallet ?? "");
   const [clubs, setClubs] = useState<ClubSummary[]>([]);
   const [clubId, setClubId] = useState("");
   const [mintMode, setMintMode] = useState<"on_purchase" | "live_event">("on_purchase");
   const [templateFile, setTemplateFile] = useState<File | null>(null);
   const [templateImageUri, setTemplateImageUri] = useState("");
   const [priceAtomic, setPriceAtomic] = useState("5");
+  const ownerWalletLocked = Boolean(initialOwnerWallet);
+
+  useEffect(() => {
+    if (initialOwnerWallet) {
+      setOwnerWallet(initialOwnerWallet);
+    }
+  }, [initialOwnerWallet]);
 
   useEffect(() => {
     async function loadClubs() {
@@ -44,10 +56,15 @@ export default function OwnerCampaignCreateClient() {
       return;
     }
 
+    if (!clubId && preselectedClubId && ownerClubs.some((club) => club.id === preselectedClubId)) {
+      setClubId(preselectedClubId);
+      return;
+    }
+
     if (!ownerClubs.some((club) => club.id === clubId)) {
       setClubId(ownerClubs[0].id);
     }
-  }, [ownerClubs, clubId]);
+  }, [ownerClubs, clubId, preselectedClubId]);
 
   async function uploadTemplate(): Promise<void> {
     if (!templateFile) {
@@ -146,8 +163,10 @@ export default function OwnerCampaignCreateClient() {
           value={ownerWallet}
           onChange={(event) => setOwnerWallet(event.target.value)}
           placeholder="Enter owner wallet to load clubs"
+          readOnly={ownerWalletLocked}
         />
       </label>
+      {ownerWalletLocked ? <p className="kicker">Owner wallet comes from your connected session.</p> : null}
       <label>
         Club
         <select aria-label="Club" value={clubId} onChange={(event) => setClubId(event.target.value)}>

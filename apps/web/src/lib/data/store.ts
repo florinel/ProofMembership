@@ -13,10 +13,20 @@ import type {
 
 type PlatformConfig = {
   initialized: boolean;
+  ownerApprovalFee: number;
   clubCreationFee: number;
   campaignCreationFee: number;
   defaultCampaignFeeBps: number;
   defaultMinCampaignFeeAtomic: string;
+};
+
+export type OwnerApplication = {
+  id: string;
+  wallet: string;
+  description: string;
+  status: "pending" | "approved" | "rejected";
+  createdAtUnix: number;
+  reviewedAtUnix: number | null;
 };
 
 type PlatformLedger = {
@@ -27,6 +37,8 @@ type PlatformLedger = {
 type PlatformState = {
   config: PlatformConfig;
   ledger: PlatformLedger;
+  approvedOwners: string[];
+  ownerApplications: OwnerApplication[];
   clubs: Club[];
   campaigns: Campaign[];
   memberships: Membership[];
@@ -69,6 +81,7 @@ const EVENT_FILE = path.join(DATA_DIR, "events.json");
 const initialState: PlatformState = {
   config: {
     initialized: false,
+    ownerApprovalFee: 0.5,
     clubCreationFee: 1,
     campaignCreationFee: 0.5,
     defaultCampaignFeeBps: 200,
@@ -78,6 +91,8 @@ const initialState: PlatformState = {
     incomingDeposits: 0,
     platformBalance: 0,
   },
+  approvedOwners: [],
+  ownerApplications: [],
   clubs: [],
   campaigns: [],
   memberships: [],
@@ -102,8 +117,17 @@ function readStore(): PlatformState {
   ensureStorage();
   const text = fs.readFileSync(MODEL_FILE, "utf8");
   const parsed = JSON.parse(text) as PlatformState;
+  if (!Array.isArray(parsed.approvedOwners)) {
+    parsed.approvedOwners = [];
+  }
+  if (!Array.isArray(parsed.ownerApplications)) {
+    parsed.ownerApplications = [];
+  }
   if (!Array.isArray(parsed.assets)) {
     parsed.assets = [];
+  }
+  if (typeof parsed.config.ownerApprovalFee !== "number" || !Number.isFinite(parsed.config.ownerApprovalFee) || parsed.config.ownerApprovalFee < 0) {
+    parsed.config.ownerApprovalFee = initialState.config.ownerApprovalFee;
   }
   return parsed;
 }
@@ -234,6 +258,7 @@ function mintMembershipAsset(input: {
 }
 
 export function initializePlatform(config: {
+  ownerApprovalFee: number;
   clubCreationFee: number;
   campaignCreationFee: number;
   defaultCampaignFeeBps: number;
@@ -247,10 +272,14 @@ export function initializePlatform(config: {
   if (!Number.isFinite(minFee) || minFee < 0) {
     throw new Error("invalid_min_campaign_fee");
   }
+  if (!Number.isFinite(config.ownerApprovalFee) || config.ownerApprovalFee < 0) {
+    throw new Error("invalid_owner_approval_fee");
+  }
 
   const state = readStore();
   state.config = {
     initialized: true,
+    ownerApprovalFee: config.ownerApprovalFee,
     clubCreationFee: config.clubCreationFee,
     campaignCreationFee: config.campaignCreationFee,
     defaultCampaignFeeBps: config.defaultCampaignFeeBps,
@@ -258,6 +287,7 @@ export function initializePlatform(config: {
   };
   writeStore(state);
   appendEvent("platform_initialized", {
+    ownerApprovalFee: config.ownerApprovalFee,
     clubCreationFee: config.clubCreationFee,
     campaignCreationFee: config.campaignCreationFee,
     defaultCampaignFeeBps: config.defaultCampaignFeeBps,
@@ -268,7 +298,10 @@ export function initializePlatform(config: {
 
 export function getAdminOverview() {
   const state = readStore();
+  const pendingOwnerApplications = state.ownerApplications.filter((application) => application.status === "pending").length;
   return {
+    approvedOwners: state.approvedOwners.length,
+    pendingOwnerApplications,
     owners: new Set(state.clubs.map((club) => club.ownerWallet)).size,
     clubs: state.clubs.length,
     campaigns: state.campaigns.length,
@@ -281,6 +314,100 @@ export function getAdminOverview() {
 
 export function listClubs(): Club[] {
   return readStore().clubs;
+}
+
+export function listOwnerApplications(status?: OwnerApplication["status"]): OwnerApplication[] {
+  const applications = readStore().ownerApplications;
+  if (!status) {
+    return applications;
+  }
+  return applications.filter((application) => application.status === status);
+}
+
+export function isApprovedOwner(wallet: string): boolean {
+  const normalized = wallet.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  const state = readStore();
+  const approved = state.approvedOwners.some((entry) => entry.toLowerCase() === normalized);
+  if (approved) {
+    return true;
+  }
+
+  return state.clubs.some((club) => club.ownerWallet.toLowerCase() === normalized);
+}
+
+export function submitOwnerApplication(input: { wallet: string; description: string }): OwnerApplication {
+  const wallet = input.wallet.trim();
+  const description = input.description.trim();
+  if (!wallet) {
+    throw new Error("wallet_required");
+  }
+  if (!description) {
+    throw new Error("description_required");
+  }
+
+  const state = readStore();
+  const existing = state.ownerApplications.find((application) => application.wallet.toLowerCase() === wallet.toLowerCase() && application.status === "pending");
+  if (existing) {
+    throw new Error("pending_application_exists");
+  }
+
+  if (isApprovedOwner(wallet)) {
+    throw new Error("owner_already_approved");
+  }
+
+  const application: OwnerApplication = {
+    id: createId("oapp"),
+    wallet,
+    description,
+    status: "pending",
+    createdAtUnix: nowUnix(),
+    reviewedAtUnix: null,
+  };
+
+  state.ownerApplications.push(application);
+  writeStore(state);
+  appendEvent("owner_application_submitted", {
+    applicationId: application.id,
+    wallet: application.wallet,
+  });
+  return application;
+}
+
+export function approveOwnerApplication(input: { applicationId: string; feePaid: number }): OwnerApplication {
+  const state = readStore();
+  const application = state.ownerApplications.find((entry) => entry.id === input.applicationId);
+  if (!application) {
+    throw new Error("owner_application_not_found");
+  }
+  if (application.status !== "pending") {
+    throw new Error("owner_application_not_pending");
+  }
+  if (input.feePaid < state.config.ownerApprovalFee) {
+    throw new Error("insufficient_owner_approval_fee");
+  }
+
+  application.status = "approved";
+  application.reviewedAtUnix = nowUnix();
+
+  if (!state.approvedOwners.some((wallet) => wallet.toLowerCase() === application.wallet.toLowerCase())) {
+    state.approvedOwners.push(application.wallet);
+  }
+
+  state.ledger.incomingDeposits += input.feePaid;
+  state.ledger.platformBalance += input.feePaid;
+  writeStore(state);
+
+  appendEvent("owner_application_approved", {
+    applicationId: application.id,
+    wallet: application.wallet,
+    feePaid: input.feePaid,
+  });
+
+  return application;
 }
 
 export function findClub(clubId: string): Club | null {
@@ -344,6 +471,9 @@ export function createClub(input: {
   }
   if (input.feePaid < state.config.clubCreationFee) {
     throw new Error("insufficient_club_fee");
+  }
+  if (!state.approvedOwners.some((wallet) => wallet.toLowerCase() === input.ownerWallet.toLowerCase())) {
+    throw new Error("owner_not_approved");
   }
   if (state.clubs.some((club) => club.slug.toLowerCase() === input.slug.toLowerCase())) {
     throw new Error("slug_already_exists");
