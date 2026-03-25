@@ -12,6 +12,7 @@ import {
   projectOnchainMembershipPurchase,
   purchaseMembership,
   rejectOwnerApplication,
+  setClubFeePolicy,
   setCampaignOnchainAddress,
   submitOwnerApplication,
 } from "@/lib/data/store";
@@ -374,5 +375,131 @@ describe("store lifecycle", () => {
         txSignature: "4Y2u9pWq6xB1kL8mR3tN7dC5vH2sE9fJ1aP6qZ3xT8n",
       })
     ).toThrowError("tx_signature_already_projected");
+  });
+
+  it("rejects purchase after max supply is reached", () => {
+    initializePlatform({
+      ownerApprovalFee: 0.5,
+      clubCreationFee: 1,
+      campaignCreationFee: 0.5,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
+    });
+
+    approveOwner("owner-wallet-sold-out");
+
+    const club = createClub({
+      slug: "sold-out-club",
+      ownerWallet: "owner-wallet-sold-out",
+      metadataUri: "https://example.com/sold-out.json",
+      feePaid: 1,
+    });
+
+    const campaign = createCampaign({
+      clubId: club.id,
+      ownerWallet: "owner-wallet-sold-out",
+      name: "Sold Out Campaign",
+      priceAtomic: "1.1",
+      templateImageUri: "https://example.com/sold-out-template.png",
+      mintMode: "on_purchase",
+      mintStartsAtUnix: null,
+      maxSupply: 1,
+      expiresAtUnix: null,
+    });
+
+    purchaseMembership({
+      campaignId: campaign.id,
+      buyerWallet: "buyer-wallet-sold-out-1",
+    });
+
+    expect(() =>
+      purchaseMembership({
+        campaignId: campaign.id,
+        buyerWallet: "buyer-wallet-sold-out-2",
+      })
+    ).toThrowError("campaign_sold_out");
+  });
+
+  it("rejects purchase for expired campaign", () => {
+    initializePlatform({
+      ownerApprovalFee: 0.5,
+      clubCreationFee: 1,
+      campaignCreationFee: 0.5,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
+    });
+
+    approveOwner("owner-wallet-expired");
+
+    const club = createClub({
+      slug: "expired-club",
+      ownerWallet: "owner-wallet-expired",
+      metadataUri: "https://example.com/expired.json",
+      feePaid: 1,
+    });
+
+    const campaign = createCampaign({
+      clubId: club.id,
+      ownerWallet: "owner-wallet-expired",
+      name: "Expired Campaign",
+      priceAtomic: "2.1",
+      templateImageUri: "https://example.com/expired-template.png",
+      mintMode: "on_purchase",
+      mintStartsAtUnix: null,
+      maxSupply: null,
+      expiresAtUnix: Math.floor(Date.now() / 1000) - 60,
+    });
+
+    expect(() =>
+      purchaseMembership({
+        campaignId: campaign.id,
+        buyerWallet: "buyer-wallet-expired",
+      })
+    ).toThrowError("campaign_expired");
+  });
+
+  it("applies updated club fee policy to purchase split", () => {
+    initializePlatform({
+      ownerApprovalFee: 0.5,
+      clubCreationFee: 1,
+      campaignCreationFee: 0.5,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
+    });
+
+    approveOwner("owner-wallet-fee-policy");
+
+    const club = createClub({
+      slug: "fee-policy-club",
+      ownerWallet: "owner-wallet-fee-policy",
+      metadataUri: "https://example.com/fee-policy.json",
+      feePaid: 1,
+    });
+
+    setClubFeePolicy({
+      clubId: club.id,
+      campaignFeeBps: 1500,
+      minCampaignFeeAtomic: "0.2",
+    });
+
+    const campaign = createCampaign({
+      clubId: club.id,
+      ownerWallet: "owner-wallet-fee-policy",
+      name: "Fee Policy Campaign",
+      priceAtomic: "10",
+      templateImageUri: "https://example.com/fee-policy-template.png",
+      mintMode: "on_purchase",
+      mintStartsAtUnix: null,
+      maxSupply: null,
+      expiresAtUnix: null,
+    });
+
+    const result = purchaseMembership({
+      campaignId: campaign.id,
+      buyerWallet: "buyer-wallet-fee-policy",
+    });
+
+    expect(result.platformFeeAtomic).toBe("1.500000");
+    expect(result.ownerReceivesAtomic).toBe("8.500000");
   });
 });

@@ -6,8 +6,8 @@ use anchor_spl::token::{self, Mint, MintTo, Token, TokenAccount};
 use crate::{
     error::MembershipError,
     events::MembershipPurchased,
-    state::{Campaign, CampaignStatus, Club, Membership, PlatformConfig},
-    utils::calculate_platform_and_owner_split,
+    state::{Campaign, Club, Membership, PlatformConfig},
+    utils::{calculate_platform_and_owner_split, validate_campaign_purchase_state},
 };
 
 #[derive(Accounts)]
@@ -15,11 +15,11 @@ pub struct PurchaseMembership<'info> {
     #[account(mut)]
     pub buyer: Signer<'info>,
     #[account(seeds = [b"platform"], bump = platform_config.bump)]
-    pub platform_config: Account<'info, PlatformConfig>,
+    pub platform_config: Box<Account<'info, PlatformConfig>>,
     #[account(mut)]
-    pub campaign: Account<'info, Campaign>,
+    pub campaign: Box<Account<'info, Campaign>>,
     #[account(mut)]
-    pub club: Account<'info, Club>,
+    pub club: Box<Account<'info, Club>>,
     #[account(mut)]
     pub platform_treasury: SystemAccount<'info>,
     #[account(mut)]
@@ -31,14 +31,14 @@ pub struct PurchaseMembership<'info> {
         mint::authority = platform_config,
         mint::freeze_authority = platform_config
     )]
-    pub nft_mint: Account<'info, Mint>,
+    pub nft_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
         payer = buyer,
         associated_token::mint = nft_mint,
         associated_token::authority = buyer
     )]
-    pub buyer_nft_token_account: Account<'info, TokenAccount>,
+    pub buyer_nft_token_account: Box<Account<'info, TokenAccount>>,
     #[account(
         init,
         payer = buyer,
@@ -46,7 +46,7 @@ pub struct PurchaseMembership<'info> {
         seeds = [b"membership", campaign.key().as_ref(), buyer.key().as_ref(), nft_mint.key().as_ref()],
         bump
     )]
-    pub membership: Account<'info, Membership>,
+    pub membership: Box<Account<'info, Membership>>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
@@ -70,21 +70,7 @@ pub fn handler(ctx: Context<PurchaseMembership>) -> Result<()> {
         MembershipError::InvalidTreasury
     );
 
-    if campaign.status != CampaignStatus::Active {
-        return err!(MembershipError::CampaignNotActive);
-    }
-
-    if let Some(max_supply) = campaign.max_supply {
-        if campaign.minted_supply >= max_supply {
-            return err!(MembershipError::CampaignSoldOut);
-        }
-    }
-
-    if let Some(expiry) = campaign.expires_at_unix {
-        if clock.unix_timestamp > expiry {
-            return err!(MembershipError::CampaignExpired);
-        }
-    }
+    validate_campaign_purchase_state(campaign, clock.unix_timestamp)?;
 
     let (platform_fee, owner_amount) =
         calculate_platform_and_owner_split(campaign.price, club.campaign_fee_bps, club.min_campaign_fee_lamports)?;

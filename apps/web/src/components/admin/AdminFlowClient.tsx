@@ -195,8 +195,9 @@ export default function AdminFlowClient() {
   }
 
   return (
-    <div className="stats-grid admin-flow-grid">
-      <section className="panel">
+    <div className="admin-flow-columns">
+      <div className="admin-flow-column">
+        <section className="panel">
         <h3>Initialize Platform</h3>
         <form className="form-grid" onSubmit={initializePlatform}>
           <label>
@@ -221,9 +222,30 @@ export default function AdminFlowClient() {
           </label>
           <button className="btn-primary" type="submit">Initialize</button>
         </form>
-      </section>
+        </section>
 
-      <section className="panel panel-wide">
+        <section className="panel">
+          <h3>Update Club Fee Policy</h3>
+          <form className="form-grid" onSubmit={updateClubFeePolicy}>
+            <label>
+              Club ID
+              <input name="clubId" type="text" placeholder="club-..." />
+            </label>
+            <label>
+              Campaign fee BPS
+              <input name="campaignFeeBps" type="number" defaultValue="200" min="0" max="10000" />
+            </label>
+            <label>
+              Minimum campaign fee (SOL)
+              <input name="minCampaignFeeAtomic" type="number" defaultValue="0.0003" step="0.000001" min="0" />
+            </label>
+            <button className="btn-primary" type="submit">Update Club Fees</button>
+          </form>
+        </section>
+      </div>
+
+      <div className="admin-flow-column">
+        <section className="panel">
         <h3>Review Owner Applications</h3>
         <p>Approve to charge onboarding fees and unlock owner role, or reject with review notes.</p>
         {pendingApplications.length ? (
@@ -274,28 +296,9 @@ export default function AdminFlowClient() {
         ) : (
           <p>No pending owner applications.</p>
         )}
-      </section>
+        </section>
 
-      <section className="panel">
-        <h3>Update Club Fee Policy</h3>
-        <form className="form-grid" onSubmit={updateClubFeePolicy}>
-          <label>
-            Club ID
-            <input name="clubId" type="text" placeholder="club-..." />
-          </label>
-          <label>
-            Campaign fee BPS
-            <input name="campaignFeeBps" type="number" defaultValue="200" min="0" max="10000" />
-          </label>
-          <label>
-            Minimum campaign fee (SOL)
-            <input name="minCampaignFeeAtomic" type="number" defaultValue="0.0003" step="0.000001" min="0" />
-          </label>
-          <button className="btn-primary" type="submit">Update Club Fees</button>
-        </form>
-      </section>
-
-      <section className="panel">
+        <section className="panel">
         <h3>Map Campaign Onchain Address</h3>
         <p>Required for `PROOFMEMBERSHIP_PURCHASE_MODE=onchain` preflight.</p>
         <form className="form-grid" onSubmit={mapCampaignOnchainAddress}>
@@ -309,9 +312,9 @@ export default function AdminFlowClient() {
           </label>
           <button className="btn-primary" type="submit">Save Mapping</button>
         </form>
-      </section>
+        </section>
 
-      <section className="panel">
+        <section className="panel">
         <h3>Flow Status</h3>
         <p>{status}</p>
         <button className="btn-primary" type="button" onClick={refreshOverview}>Refresh Overview</button>
@@ -328,7 +331,8 @@ export default function AdminFlowClient() {
             <p>Platform Balance: {overview.platformBalanceAtomic}</p>
           </div>
         ) : null}
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

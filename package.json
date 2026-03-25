@@ -16,5 +16,8 @@
     "test:web:unit": "pnpm --filter @proofmembership/web test:unit",
     "test:backend:unit": "cargo test --manifest-path programs/membership_core/Cargo.toml",
     "check": "pnpm lint:web"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2"
   }
 }

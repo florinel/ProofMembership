@@ -9,46 +9,12 @@ All notable changes to this project will be documented in this file.
 
 _Auto-generated from the local changelog watcher. Curated release notes should stay in the sections above._
 
-- 2026-03-25 19:32:54.762 UTC - Updated `apps/web/src/lib/data/store.ts`
-- 2026-03-25 19:32:54.761 UTC - Updated `apps/web/.env.local`
-- 2026-03-25 19:32:21.382 UTC - Updated `tests/integration/payments_sol_usdc.md`
-- 2026-03-25 19:32:21.382 UTC - Updated `tests/integration/club_campaign_lifecycle.md`
-- 2026-03-25 19:32:21.382 UTC - Updated `scripts/stop-devnet.sh`
-- 2026-03-25 19:32:21.382 UTC - Updated `scripts/stop-all-local.sh`
-- 2026-03-25 19:32:21.382 UTC - Updated `scripts/start-devnet.sh`
-- 2026-03-25 19:32:21.382 UTC - Updated `scripts/deploy-devnet.sh`
-- 2026-03-25 19:32:21.382 UTC - Updated `scripts/clean-start-local.sh`
-- 2026-03-25 19:32:21.382 UTC - Updated `scripts/changelog-watch.mjs`
-- 2026-03-25 19:32:21.382 UTC - Updated `services/indexer/src/webhooks.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `services/indexer/package.json`
-- 2026-03-25 19:32:21.382 UTC - Updated `programs/membership_core/Cargo.toml`
-- 2026-03-25 19:32:21.382 UTC - Updated `packages/types/src/index.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `packages/types/package.json`
-- 2026-03-25 19:32:21.382 UTC - Updated `packages/sdk/src/index.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `packages/sdk/package.json`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/vitest.setup.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/vitest.config.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/tsconfig.json`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/types/solana.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/media/mediaStore.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/media/mediaStore.test.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/data/store.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/data/store.test.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/data/mock.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/chain/purchase.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/chain/purchase.test.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/auth/walletChallenge.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/auth/token.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/auth/session.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/auth/roles.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/lib/auth/roleResolver.ts`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/components/storefront/StorefrontFlowClient.tsx`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/components/owner/OwnerOnboardingClient.tsx`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/components/owner/OwnerCampaignCreateClient.tsx`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/components/owner/OwnerCampaignCreateClient.test.tsx`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/components/auth/WalletConnectClient.tsx`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/components/admin/AdminFlowClient.tsx`
-- 2026-03-25 19:32:21.382 UTC - Updated `apps/web/src/components/ThemeToggle.tsx`
+- 2026-03-25 22:36:24.012 UTC - Updated `apps/web/src/app/styles.css`
+- 2026-03-25 22:36:18.128 UTC - Updated `apps/web/src/app/styles.css`
+- 2026-03-25 22:36:16.127 UTC - Updated `apps/web/src/components/admin/AdminFlowClient.tsx`
+- 2026-03-25 22:36:14.127 UTC - Updated `apps/web/src/components/admin/AdminFlowClient.tsx`
+- 2026-03-25 22:35:33.806 UTC - Updated `Anchor.toml`
+- 2026-03-25 22:35:07.614 UTC - Updated `Anchor.toml`
 <!-- AUTO-CHANGELOG-END -->
 
 ### Improvements

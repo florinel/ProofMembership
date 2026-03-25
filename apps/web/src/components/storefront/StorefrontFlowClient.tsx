@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Buffer } from "buffer";
 import { useEffect, useMemo, useState } from "react";
 

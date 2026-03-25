@@ -33,6 +33,7 @@ function mockParsedPurchaseTx(input: {
   programId: string;
   paidLamports: number;
   writableOverrides?: Partial<Record<"buyer" | "platformPda" | "campaign" | "club" | "platformTreasury" | "ownerTreasury", boolean>>;
+  buyerSigner?: boolean;
 }): void {
   const accountKeys = [
     input.buyer,
@@ -65,7 +66,7 @@ function mockParsedPurchaseTx(input: {
       message: {
         accountKeys: accountKeys.map((address, index) => ({
           pubkey: new web3.PublicKey(address),
-          signer: index === 0,
+          signer: index === 0 ? (input.buyerSigner ?? true) : false,
           writable: (
             input.writableOverrides?.[
               index === 0
@@ -320,5 +321,64 @@ describe("purchaseMembershipOnchain preflight", () => {
         txSignature: "3Y2u9pWq6xB1kL8mR3tN7dC5vH2sE9fJ1aP6qZ3xT8n",
       })
     ).rejects.toThrowError("onchain_tx_campaign_not_writable");
+  });
+
+  it("rejects campaign account owned by the wrong program", async () => {
+    const { campaignId } = seedCampaignWithOnchainAddress();
+
+    vi.spyOn(web3.Connection.prototype, "getAccountInfo").mockResolvedValue({
+      owner: new web3.PublicKey(TEST_TREASURY),
+      data: Buffer.alloc(72),
+      executable: false,
+      lamports: 1,
+      rentEpoch: 0,
+    } as unknown as web3.AccountInfo<Buffer>);
+
+    await expect(
+      purchaseMembershipOnchain({
+        campaignId,
+        buyerWallet: TEST_BUYER,
+      })
+    ).rejects.toThrowError("campaign_program_mismatch");
+  });
+
+  it("requires tx signature before transaction verification", async () => {
+    const { campaignId } = seedCampaignWithOnchainAddress();
+
+    await expect(
+      verifyOnchainPurchaseTx({
+        campaignId,
+        buyerWallet: TEST_BUYER,
+        txSignature: "   ",
+      })
+    ).rejects.toThrowError("tx_signature_required");
+  });
+
+  it("rejects parsed onchain transaction missing buyer signer", async () => {
+    const { campaignId } = seedCampaignWithOnchainAddress();
+    const [platformPda] = web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("platform")],
+      new web3.PublicKey(TEST_PROGRAM_ID)
+    );
+
+    mockParsedPurchaseTx({
+      buyer: TEST_BUYER,
+      platformPda: platformPda.toBase58(),
+      campaignAddress: "6Q8Yg3vBf2iM7mWqL4nXbYd9pQk2tRj6hJ4sN8zP1cVa",
+      clubAddress: TEST_CLUB,
+      platformTreasury: TEST_TREASURY,
+      ownerTreasury: TEST_OWNER,
+      programId: TEST_PROGRAM_ID,
+      paidLamports: 1_000_000_000,
+      buyerSigner: false,
+    });
+
+    await expect(
+      verifyOnchainPurchaseTx({
+        campaignId,
+        buyerWallet: TEST_BUYER,
+        txSignature: "3Y2u9pWq6xB1kL8mR3tN7dC5vH2sE9fJ1aP6qZ3xT8n",
+      })
+    ).rejects.toThrowError("onchain_tx_missing_buyer_signer");
   });
 });

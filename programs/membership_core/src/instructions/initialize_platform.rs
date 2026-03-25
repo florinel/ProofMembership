@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{error::MembershipError, state::PlatformConfig};
+use crate::{state::PlatformConfig, utils::validate_campaign_fee_bps};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct InitializePlatformParams {
@@ -28,7 +28,7 @@ pub struct InitializePlatform<'info> {
 }
 
 pub fn handler(ctx: Context<InitializePlatform>, params: InitializePlatformParams) -> Result<()> {
-    require!(params.default_campaign_fee_bps <= 10_000, MembershipError::InvalidCampaignFeeBps);
+    validate_campaign_fee_bps(params.default_campaign_fee_bps)?;
 
     let account = &mut ctx.accounts.platform_config;
     account.authority = ctx.accounts.authority.key();

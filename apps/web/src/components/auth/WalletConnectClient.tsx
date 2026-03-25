@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import bs58 from "bs58";
 import Link from "next/link";
 import { useMemo, useState } from "react";

@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use crate::{
     error::MembershipError,
     state::{Club, PlatformConfig},
+    utils::validate_campaign_fee_bps,
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
@@ -27,7 +28,7 @@ pub fn handler(ctx: Context<SetClubFeePolicy>, params: SetClubFeePolicyParams) -
         ctx.accounts.authority.key(),
         MembershipError::Unauthorized
     );
-    require!(params.campaign_fee_bps <= 10_000, MembershipError::InvalidCampaignFeeBps);
+    validate_campaign_fee_bps(params.campaign_fee_bps)?;
 
     let club = &mut ctx.accounts.club;
     club.campaign_fee_bps = params.campaign_fee_bps;
