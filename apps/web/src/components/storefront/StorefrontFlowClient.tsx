@@ -3,7 +3,7 @@
 import { Buffer } from "buffer";
 import { useEffect, useMemo, useState } from "react";
 
-import type { Campaign, Membership } from "@solnft/types";
+import type { Campaign, Membership } from "@proofmembership/types";
 import type { OnchainPurchaseIntent } from "@/lib/chain/purchase";
 
 function formatExpiry(expiresAtUnix: number | null): string {

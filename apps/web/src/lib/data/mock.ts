@@ -1,4 +1,4 @@
-import type { Campaign, Club, Membership } from "@solnft/types";
+import type { Campaign, Club, Membership } from "@proofmembership/types";
 
 export const clubs: Club[] = [
   {

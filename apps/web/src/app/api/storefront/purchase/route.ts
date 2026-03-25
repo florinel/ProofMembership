@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const mode = (process.env.SOLNFT_PURCHASE_MODE ?? "local").toLowerCase();
+    const mode = (process.env.PROOFMEMBERSHIP_PURCHASE_MODE ?? "local").toLowerCase();
     if (mode === "onchain") {
       const result = await purchaseMembershipOnchain({
         campaignId,

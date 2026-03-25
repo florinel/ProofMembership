@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import type { MintMode } from "@solnft/types";
+import type { MintMode } from "@proofmembership/types";
 
 import { createCampaign } from "@/lib/data/store";
 

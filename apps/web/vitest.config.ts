@@ -13,7 +13,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@solnft/types": path.resolve(__dirname, "../../packages/types/src/index.ts"),
+      "@proofmembership/types": path.resolve(__dirname, "../../packages/types/src/index.ts"),
     },
   },
 });

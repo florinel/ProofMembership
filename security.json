@@ -1,15 +1,15 @@
 {
-  "name": "SolNFT Membership Core",
-  "project_url": "https://github.com/florinel/solnft",
+  "name": "ProofMembership Membership Core",
+  "project_url": "https://github.com/florinel/ProofMembership",
   "contacts": [
     "email:security@example.com",
-    "link:https://github.com/florinel/solnft/security"
+    "link:https://github.com/florinel/ProofMembership/security"
   ],
-  "policy": "https://github.com/florinel/solnft/blob/main/SECURITY.md",
+  "policy": "https://github.com/florinel/ProofMembership/blob/main/SECURITY.md",
   "preferred_languages": [
     "en"
   ],
-  "source_code": "https://github.com/florinel/solnft",
+  "source_code": "https://github.com/florinel/ProofMembership",
   "source_release": "devnet",
   "version": "0.1.0"
 }

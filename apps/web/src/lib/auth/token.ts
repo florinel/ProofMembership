@@ -7,15 +7,15 @@ export type SessionClaims = {
   role: AppRole;
 };
 
-const SESSION_COOKIE_NAME = "solnft_session";
+const SESSION_COOKIE_NAME = "proofmembership_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
-const SESSION_ISSUER = "solnft";
+const SESSION_ISSUER = "proofmembership";
 
 function getSessionSecret(): Uint8Array {
   // Keep local auth usable out of the box, but production deploys should always provide an
   // explicit secret so sessions remain stable across restarts and environments.
   const fallback = "dev-only-secret-change-in-production";
-  const secret = process.env.SOLNFT_AUTH_SECRET ?? fallback;
+  const secret = process.env.PROOFMEMBERSHIP_AUTH_SECRET ?? fallback;
   return new TextEncoder().encode(secret);
 }
 

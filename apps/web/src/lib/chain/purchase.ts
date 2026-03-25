@@ -132,9 +132,9 @@ async function preflightOnchainPurchase(input: OnchainPurchaseInput): Promise<{
 }> {
   assertValidWalletAddress(input.buyerWallet);
   const campaignOnchainAddress = getCampaignOnchainAddress(input.campaignId);
-  const rpcUrl = getRequiredEnv("SOLNFT_RPC_URL");
-  const programId = getRequiredEnv("SOLNFT_PROGRAM_ID");
-  const platformTreasury = getRequiredEnv("SOLNFT_PLATFORM_TREASURY");
+  const rpcUrl = getRequiredEnv("PROOFMEMBERSHIP_RPC_URL");
+  const programId = getRequiredEnv("PROOFMEMBERSHIP_PROGRAM_ID");
+  const platformTreasury = getRequiredEnv("PROOFMEMBERSHIP_PLATFORM_TREASURY");
 
   const pointers = await loadCampaignPointersFromChain({
     rpcUrl,

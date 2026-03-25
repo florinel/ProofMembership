@@ -39,8 +39,8 @@ Use this checklist when validating the main admin -> owner -> storefront flow.
    - confirm metadata includes campaign, club, and owner attributes
 
 6. Validate persisted state.
-   - confirm `.solnft/indexer/read-model.json` includes the platform config, club, campaign, membership, and asset
-   - confirm `.solnft/indexer/events.json` contains `platform_initialized`, `club_created`, `campaign_created`, and `membership_purchased`
+   - confirm `.proofmembership/indexer/read-model.json` includes the platform config, club, campaign, membership, and asset
+   - confirm `.proofmembership/indexer/events.json` contains `platform_initialized`, `club_created`, `campaign_created`, and `membership_purchased`
 
 7. Validate admin metrics.
    - owners count increased

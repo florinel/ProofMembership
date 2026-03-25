@@ -12,7 +12,7 @@ type SessionRole = "public" | "member" | "owner" | "admin";
 export default function WalletConnectClient() {
   const [wallet, setWallet] = useState<string | null>(null);
   const [role, setRole] = useState<SessionRole | null>(null);
-  const [status, setStatus] = useState("Connect your Solana wallet to create a signed SolNFT session.");
+  const [status, setStatus] = useState("Connect your Solana wallet to create a signed ProofMembership session.");
 
   const walletShort = useMemo(() => {
     if (!wallet) {

@@ -1,5 +1,5 @@
 {
-  "name": "@solnft/indexer",
+  "name": "@proofmembership/indexer",
   "version": "0.1.0",
   "private": true,
   "type": "module",

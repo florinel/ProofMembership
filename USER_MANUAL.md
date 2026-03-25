@@ -1,6 +1,6 @@
-# SolNFT User Manual
+# ProofMembership User Manual
 
-This guide explains how to run and use the current SolNFT implementation from the web app.
+This guide explains how to run and use the current ProofMembership implementation from the web app.
 
 ## 1. Roles and surfaces
 
@@ -53,21 +53,21 @@ pnpm install
 
 Optional campaign media storage configuration:
 
-- `SOLNFT_MEDIA_PROVIDER=local|arweave` (default: `local`)
-- `SOLNFT_ARWEAVE_UPLOAD_URL=https://...` (required for `arweave` mode)
-- `SOLNFT_ARWEAVE_API_KEY=...` (optional bearer token for your uploader)
+- `PROOFMEMBERSHIP_MEDIA_PROVIDER=local|arweave` (default: `local`)
+- `PROOFMEMBERSHIP_ARWEAVE_UPLOAD_URL=https://...` (required for `arweave` mode)
+- `PROOFMEMBERSHIP_ARWEAVE_API_KEY=...` (optional bearer token for your uploader)
 
 In `arweave` mode, the template upload API forwards files to your configured uploader and uses the returned permanent URI.
 
 Optional purchase mode configuration:
 
-- `SOLNFT_PURCHASE_MODE=local|onchain` (default: `local`)
+- `PROOFMEMBERSHIP_PURCHASE_MODE=local|onchain` (default: `local`)
 
 When using `onchain` mode, configure:
 
-- `SOLNFT_RPC_URL=https://...`
-- `SOLNFT_PROGRAM_ID=...`
-- `SOLNFT_PLATFORM_TREASURY=...`
+- `PROOFMEMBERSHIP_RPC_URL=https://...`
+- `PROOFMEMBERSHIP_PROGRAM_ID=...`
+- `PROOFMEMBERSHIP_PLATFORM_TREASURY=...`
 
 `onchain` mode now performs real wallet transaction wiring for Anchor `purchase_membership`.
 The storefront confirms the transaction, then calls `/api/storefront/purchase/confirm`, which validates transaction contents from RPC before membership projection.
@@ -98,7 +98,7 @@ pnpm util:stop-all:local
 pnpm util:watch:changelog
 ```
 
-- `pnpm util:clean-start:local` stops existing local SolNFT processes, clears the local read model, starts the local validator, builds and deploys the Anchor program, then launches the indexer scaffold, web app, and changelog watcher.
+- `pnpm util:clean-start:local` stops existing local ProofMembership processes, clears the local read model, starts the local validator, builds and deploys the Anchor program, then launches the indexer scaffold, web app, and changelog watcher.
 - `pnpm util:stop-all:local` stops the local validator, indexer, and web app processes and removes generated local indexer state.
 - `pnpm util:watch:changelog` runs the changelog watcher by itself if you only want filesystem-driven changelog updates.
 
@@ -121,7 +121,7 @@ The app also supports API-driven wallet auth:
 1. `POST /api/auth/challenge` with a wallet address.
 2. Sign the returned message with the wallet.
 3. `POST /api/auth/verify` with wallet, nonce, message, and signature.
-4. The server issues the `solnft_session` cookie.
+4. The server issues the `proofmembership_session` cookie.
 
 Use `POST /api/auth/logout` to clear the signed session.
 
@@ -192,9 +192,9 @@ Use `POST /api/auth/logout` to clear the signed session.
 
 The current implementation persists local data during web flows:
 
-- `.solnft/indexer/read-model.json` stores clubs, campaigns, memberships, balances, and minted assets
-- `.solnft/indexer/events.json` stores a simple append-only event history
-- `.solnft/media/` stores uploaded campaign template images
+- `.proofmembership/indexer/read-model.json` stores clubs, campaigns, memberships, balances, and minted assets
+- `.proofmembership/indexer/events.json` stores a simple append-only event history
+- `.proofmembership/media/` stores uploaded campaign template images
 
 If you want to reset these files during local development, use:
 
@@ -202,7 +202,7 @@ If you want to reset these files during local development, use:
 pnpm util:stop-all:local
 ```
 
-or manually delete `.solnft/`.
+or manually delete `.proofmembership/`.
 
 ## 7. Running tests
 
@@ -215,8 +215,8 @@ pnpm test:web:unit
 Run a single web test file:
 
 ```bash
-pnpm --filter @solnft/web test:unit -- src/lib/data/store.test.ts
-pnpm --filter @solnft/web test:unit -- src/components/owner/OwnerCampaignCreateClient.test.tsx
+pnpm --filter @proofmembership/web test:unit -- src/lib/data/store.test.ts
+pnpm --filter @proofmembership/web test:unit -- src/components/owner/OwnerCampaignCreateClient.test.tsx
 ```
 
 ### Backend unit tests

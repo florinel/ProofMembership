@@ -12,7 +12,7 @@ declare global {
 }
 
 export const metadata: Metadata = {
-  title: "SolNFT",
+  title: "ProofMembership",
   description: "Solana club membership platform",
 };
 

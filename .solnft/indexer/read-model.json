@@ -1,0 +1,57 @@
+{
+  "config": {
+    "initialized": true,
+    "ownerApprovalFee": 0.5,
+    "clubCreationFee": 1,
+    "campaignCreationFee": 0.5,
+    "defaultCampaignFeeBps": 200,
+    "defaultMinCampaignFeeAtomic": "0.000300"
+  },
+  "ledger": {
+    "incomingDeposits": 2,
+    "platformBalance": 2
+  },
+  "approvedOwners": [
+    "4Nd1mJrNnk7U2fTH8QW5Jf3EXAMPLe1111111111111111111"
+  ],
+  "ownerApplications": [
+    {
+      "id": "oapp-54777d1267d80cde",
+      "wallet": "4Nd1mJrNnk7U2fTH8QW5Jf3EXAMPLe1111111111111111111",
+      "description": "Test owner",
+      "status": "approved",
+      "createdAtUnix": 1774465684,
+      "reviewedAtUnix": 1774465684,
+      "reviewNote": null
+    }
+  ],
+  "clubs": [
+    {
+      "id": "club-cb4de51b9c985659",
+      "slug": "test-club",
+      "ownerWallet": "4Nd1mJrNnk7U2fTH8QW5Jf3EXAMPLe1111111111111111111",
+      "metadataUri": "https://example.com/club.json",
+      "campaignFeeBps": 200,
+      "minCampaignFeeAtomic": "0.000300"
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "camp-c9f69fd319e2ced2",
+      "clubId": "club-cb4de51b9c985659",
+      "name": "Onchain Campaign",
+      "priceAtomic": "1",
+      "paymentToken": "SOL",
+      "templateImageUri": "https://example.com/template.png",
+      "mintMode": "on_purchase",
+      "mintStartsAtUnix": null,
+      "maxSupply": null,
+      "mintedSupply": 0,
+      "expiresAtUnix": null,
+      "status": "active",
+      "onchainAddress": "6Q8Yg3vBf2iM7mWqL4nXbYd9pQk2tRj6hJ4sN8zP1cVa"
+    }
+  ],
+  "memberships": [],
+  "assets": []
+}

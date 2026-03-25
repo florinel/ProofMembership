@@ -17,7 +17,7 @@ function parseCookieRole(cookieHeader: string | null): AppRole | null {
   }
 
   const entries = cookieHeader.split(";").map((part) => part.trim());
-  const roleEntry = entries.find((part) => part.startsWith("solnft_role="));
+  const roleEntry = entries.find((part) => part.startsWith("proofmembership_role="));
   if (!roleEntry) {
     return null;
   }
@@ -43,7 +43,7 @@ export async function getRequestRole(): Promise<AppRole> {
       return cookieRole;
     }
 
-    const headerRole = headerStore.get("x-solnft-role");
+    const headerRole = headerStore.get("x-proofmembership-role");
     if (headerRole === "admin" || headerRole === "owner" || headerRole === "member") {
       return headerRole;
     }

@@ -19,8 +19,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@solnft/types": ["../../packages/types/src/index.ts"],
-      "@solnft/sdk": ["../../packages/sdk/src/index.ts"]
+      "@proofmembership/types": ["../../packages/types/src/index.ts"],
+      "@proofmembership/sdk": ["../../packages/sdk/src/index.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

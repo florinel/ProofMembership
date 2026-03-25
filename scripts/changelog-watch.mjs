@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 
 const CHANGELOG_PATH = path.join(repoRoot, "CHANGELOG.md");
-const PID_DIR = path.join(repoRoot, ".solnft");
+const PID_DIR = path.join(repoRoot, ".proofmembership");
 const PID_FILE = path.join(PID_DIR, "changelog-watch.pid");
 const POLL_INTERVAL_MS = 2000;
 const MAX_EVENTS = 40;
@@ -34,7 +34,7 @@ const watchTargets = [
 const ignoredDirs = new Set([
   ".git",
   ".next",
-  ".solnft",
+  ".proofmembership",
   "node_modules",
   "target",
   "test-ledger",
@@ -227,7 +227,7 @@ writePid();
 snapshot = collectSnapshot();
 writeChangelog();
 
-console.log("SolNFT changelog watcher running...");
+console.log("ProofMembership changelog watcher running...");
 
 const interval = setInterval(tick, POLL_INTERVAL_MS);
 

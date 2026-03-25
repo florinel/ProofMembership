@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     maxAge: getSessionTtlSeconds(),
   });
 
-  response.cookies.set("solnft_role", role, {
+  response.cookies.set("proofmembership_role", role, {
     httpOnly: true,
     sameSite: "lax",
     secure: false,

@@ -13,7 +13,7 @@ const roleRank: Record<AppRole, number> = {
 };
 
 function getRole(request: NextRequest): AppRole {
-  const fallbackCookieRole = request.cookies.get("solnft_role")?.value;
+  const fallbackCookieRole = request.cookies.get("proofmembership_role")?.value;
   if (process.env.NODE_ENV !== "production") {
     // Local UI work can rely on a simple cookie role before the full wallet-signature flow is
     // exercised through the browser.

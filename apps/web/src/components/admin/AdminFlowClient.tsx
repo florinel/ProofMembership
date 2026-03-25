@@ -297,7 +297,7 @@ export default function AdminFlowClient() {
 
       <section className="panel">
         <h3>Map Campaign Onchain Address</h3>
-        <p>Required for `SOLNFT_PURCHASE_MODE=onchain` preflight.</p>
+        <p>Required for `PROOFMEMBERSHIP_PURCHASE_MODE=onchain` preflight.</p>
         <form className="form-grid" onSubmit={mapCampaignOnchainAddress}>
           <label>
             Campaign ID

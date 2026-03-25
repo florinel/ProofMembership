@@ -1,4 +1,4 @@
-import type { Campaign, Club, Membership, MembershipNftMetadata } from "@solnft/types";
+import type { Campaign, Club, Membership, MembershipNftMetadata } from "@proofmembership/types";
 
 export interface PlatformClient {
   getClubs(): Promise<Club[]>;

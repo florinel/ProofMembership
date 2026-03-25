@@ -9,7 +9,7 @@ import type {
   MintMode,
   MembershipNftMetadata,
   MintedMembershipAsset,
-} from "@solnft/types";
+} from "@proofmembership/types";
 
 type PlatformConfig = {
   initialized: boolean;
@@ -75,7 +75,7 @@ function resolveRepoRoot(): string {
   return cwd;
 }
 
-const DATA_DIR = path.join(resolveRepoRoot(), ".solnft", "indexer");
+const DATA_DIR = path.join(resolveRepoRoot(), ".proofmembership", "indexer");
 const MODEL_FILE = path.join(DATA_DIR, "read-model.json");
 const EVENT_FILE = path.join(DATA_DIR, "events.json");
 
@@ -232,10 +232,10 @@ function buildMembershipMetadata(input: {
   const expiresAtValue = input.membership.expiresAtUnix ?? "none";
   return {
     name: `${input.club.slug} ${input.campaign.name} Membership`,
-    symbol: "SOLNFT",
+    symbol: "PROOF",
     description: `Membership access NFT for ${input.club.slug} / ${input.campaign.name}.`,
     image: input.campaign.templateImageUri,
-    external_url: "https://solnft.app/storefront",
+    external_url: "https://proofmembership.app/storefront",
     attributes: [
       { trait_type: "club_slug", value: input.club.slug },
       { trait_type: "campaign_name", value: input.campaign.name },

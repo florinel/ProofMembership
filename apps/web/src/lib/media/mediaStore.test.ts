@@ -3,22 +3,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { saveTemplateImage } from "@/lib/media/mediaStore";
 
 describe("mediaStore provider behavior", () => {
-  const originalProvider = process.env.SOLNFT_MEDIA_PROVIDER;
-  const originalUploadUrl = process.env.SOLNFT_ARWEAVE_UPLOAD_URL;
-  const originalApiKey = process.env.SOLNFT_ARWEAVE_API_KEY;
+  const originalProvider = process.env.PROOFMEMBERSHIP_MEDIA_PROVIDER;
+  const originalUploadUrl = process.env.PROOFMEMBERSHIP_ARWEAVE_UPLOAD_URL;
+  const originalApiKey = process.env.PROOFMEMBERSHIP_ARWEAVE_API_KEY;
   const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
-    process.env.SOLNFT_MEDIA_PROVIDER = "local";
-    delete process.env.SOLNFT_ARWEAVE_UPLOAD_URL;
-    delete process.env.SOLNFT_ARWEAVE_API_KEY;
+    process.env.PROOFMEMBERSHIP_MEDIA_PROVIDER = "local";
+    delete process.env.PROOFMEMBERSHIP_ARWEAVE_UPLOAD_URL;
+    delete process.env.PROOFMEMBERSHIP_ARWEAVE_API_KEY;
     globalThis.fetch = originalFetch;
   });
 
   afterEach(() => {
-    process.env.SOLNFT_MEDIA_PROVIDER = originalProvider;
-    process.env.SOLNFT_ARWEAVE_UPLOAD_URL = originalUploadUrl;
-    process.env.SOLNFT_ARWEAVE_API_KEY = originalApiKey;
+    process.env.PROOFMEMBERSHIP_MEDIA_PROVIDER = originalProvider;
+    process.env.PROOFMEMBERSHIP_ARWEAVE_UPLOAD_URL = originalUploadUrl;
+    process.env.PROOFMEMBERSHIP_ARWEAVE_API_KEY = originalApiKey;
     globalThis.fetch = originalFetch;
     vi.restoreAllMocks();
   });
@@ -30,7 +30,7 @@ describe("mediaStore provider behavior", () => {
   });
 
   it("requires upload URL when arweave provider is selected", async () => {
-    process.env.SOLNFT_MEDIA_PROVIDER = "arweave";
+    process.env.PROOFMEMBERSHIP_MEDIA_PROVIDER = "arweave";
     const file = new File([new Uint8Array([1, 2, 3])], "template.png", {
       type: "image/png",
     });
@@ -39,8 +39,8 @@ describe("mediaStore provider behavior", () => {
   });
 
   it("normalizes arweave upload response to permanent URI", async () => {
-    process.env.SOLNFT_MEDIA_PROVIDER = "arweave";
-    process.env.SOLNFT_ARWEAVE_UPLOAD_URL = "https://uploader.example/upload";
+    process.env.PROOFMEMBERSHIP_MEDIA_PROVIDER = "arweave";
+    process.env.PROOFMEMBERSHIP_ARWEAVE_UPLOAD_URL = "https://uploader.example/upload";
 
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

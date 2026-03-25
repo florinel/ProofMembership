@@ -9,19 +9,19 @@ type WalletChallenge = {
 };
 
 type GlobalWithChallenges = typeof globalThis & {
-  __solnftChallenges?: Map<string, WalletChallenge>;
+  __proofmembershipChallenges?: Map<string, WalletChallenge>;
 };
 
 const CHALLENGE_TTL_SECONDS = 60 * 5;
 
 function challengeStore(): Map<string, WalletChallenge> {
   const globalObj = globalThis as GlobalWithChallenges;
-  if (!globalObj.__solnftChallenges) {
+  if (!globalObj.__proofmembershipChallenges) {
     // Challenges stay in memory for the current single-instance app flow. If auth moves behind
     // multiple web instances, this store will need to be replaced with shared persistence.
-    globalObj.__solnftChallenges = new Map<string, WalletChallenge>();
+    globalObj.__proofmembershipChallenges = new Map<string, WalletChallenge>();
   }
-  return globalObj.__solnftChallenges;
+  return globalObj.__proofmembershipChallenges;
 }
 
 function nowUnix(): number {
@@ -47,16 +47,16 @@ function assertWallet(wallet: string): void {
 }
 
 function buildChallengeMessage(wallet: string, nonce: string): string {
-  const domain = process.env.SOLNFT_AUTH_DOMAIN ?? "localhost";
-  const uri = process.env.SOLNFT_AUTH_URI ?? "http://localhost:3000";
-  const chain = process.env.SOLNFT_CHAIN_ID ?? "solana:devnet";
+  const domain = process.env.PROOFMEMBERSHIP_AUTH_DOMAIN ?? "localhost";
+  const uri = process.env.PROOFMEMBERSHIP_AUTH_URI ?? "http://localhost:3000";
+  const chain = process.env.PROOFMEMBERSHIP_CHAIN_ID ?? "solana:devnet";
   const issuedAt = new Date().toISOString();
 
   return [
     `${domain} wants you to sign in with your Solana account:`,
     wallet,
     "",
-    "Sign this message to authenticate with SolNFT.",
+    "Sign this message to authenticate with ProofMembership.",
     "",
     `URI: ${uri}`,
     "Version: 1",

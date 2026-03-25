@@ -6,18 +6,18 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 cd "${REPO_ROOT}"
 
-echo "Stopping local SolNFT processes..."
+echo "Stopping local ProofMembership processes..."
 pkill -f solana-test-validator || true
-pkill -f "pnpm --filter @solnft/indexer dev" || true
+pkill -f "pnpm --filter @proofmembership/indexer dev" || true
 pkill -f "pnpm dev:web" || true
 pkill -f "next dev" || true
-if [ -f .solnft/changelog-watch.pid ]; then
-  kill "$(cat .solnft/changelog-watch.pid)" >/dev/null 2>&1 || true
-  rm -f .solnft/changelog-watch.pid
+if [ -f .proofmembership/changelog-watch.pid ]; then
+  kill "$(cat .proofmembership/changelog-watch.pid)" >/dev/null 2>&1 || true
+  rm -f .proofmembership/changelog-watch.pid
 fi
 
-rm -rf .solnft/indexer || true
-rm -rf apps/web/.solnft/indexer || true
+rm -rf .proofmembership/indexer || true
+rm -rf apps/web/.proofmembership/indexer || true
 
 echo "Stopped (or already not running):"
 echo "- solana-test-validator"
@@ -25,4 +25,4 @@ echo "- indexer dev process"
 echo "- web dev process"
 echo "- changelog watcher"
 
-echo "Tip: If background logs remain, check /tmp/solana-test-validator.log, /tmp/solnft-indexer.log, /tmp/solnft-web.log, /tmp/solnft-changelog-watch.log"
+echo "Tip: If background logs remain, check /tmp/solana-test-validator.log, /tmp/proofmembership-indexer.log, /tmp/proofmembership-web.log, /tmp/proofmembership-changelog-watch.log"

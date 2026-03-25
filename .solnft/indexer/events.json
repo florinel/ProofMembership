@@ -1,0 +1,70 @@
+[
+  {
+    "id": "evt-c3a33fb416bc9477",
+    "type": "platform_initialized",
+    "createdAtUnix": 1774465684,
+    "payload": {
+      "ownerApprovalFee": 0.5,
+      "clubCreationFee": 1,
+      "campaignCreationFee": 0.5,
+      "defaultCampaignFeeBps": 200,
+      "defaultMinCampaignFeeAtomic": "0.000300"
+    }
+  },
+  {
+    "id": "evt-7f791b98641bfac0",
+    "type": "owner_application_submitted",
+    "createdAtUnix": 1774465684,
+    "payload": {
+      "applicationId": "oapp-54777d1267d80cde",
+      "wallet": "4Nd1mJrNnk7U2fTH8QW5Jf3EXAMPLe1111111111111111111"
+    }
+  },
+  {
+    "id": "evt-6ec74d6f7033a426",
+    "type": "owner_application_approved",
+    "createdAtUnix": 1774465684,
+    "payload": {
+      "applicationId": "oapp-54777d1267d80cde",
+      "wallet": "4Nd1mJrNnk7U2fTH8QW5Jf3EXAMPLe1111111111111111111",
+      "feePaid": 0.5
+    }
+  },
+  {
+    "id": "evt-d87b3b96c49eca56",
+    "type": "club_created",
+    "createdAtUnix": 1774465684,
+    "payload": {
+      "clubId": "club-cb4de51b9c985659",
+      "slug": "test-club",
+      "ownerWallet": "4Nd1mJrNnk7U2fTH8QW5Jf3EXAMPLe1111111111111111111",
+      "metadataUri": "https://example.com/club.json",
+      "feePaid": 1,
+      "campaignFeeBps": 200,
+      "minCampaignFeeAtomic": "0.000300"
+    }
+  },
+  {
+    "id": "evt-d7b912d88cdf35fd",
+    "type": "campaign_created",
+    "createdAtUnix": 1774465684,
+    "payload": {
+      "campaignId": "camp-c9f69fd319e2ced2",
+      "clubId": "club-cb4de51b9c985659",
+      "ownerWallet": "4Nd1mJrNnk7U2fTH8QW5Jf3EXAMPLe1111111111111111111",
+      "paymentToken": "SOL",
+      "feePaid": 0.5,
+      "mintMode": "on_purchase",
+      "templateImageUri": "https://example.com/template.png"
+    }
+  },
+  {
+    "id": "evt-3350bdd785cf2e44",
+    "type": "campaign_onchain_address_set",
+    "createdAtUnix": 1774465684,
+    "payload": {
+      "campaignId": "camp-c9f69fd319e2ced2",
+      "onchainAddress": "6Q8Yg3vBf2iM7mWqL4nXbYd9pQk2tRj6hJ4sN8zP1cVa"
+    }
+  }
+]

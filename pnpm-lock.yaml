@@ -68,7 +68,7 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@solnft/types':
+      '@proofmembership/types':
         specifier: workspace:*
         version: link:../types
 

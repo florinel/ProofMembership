@@ -1,6 +1,6 @@
-# SolNFT Local Testing Runbook
+# ProofMembership Local Testing Runbook
 
-This runbook is for validating the current SolNFT stack on localnet. It covers the Anchor program, the web app, local projection files, and wallet-auth endpoints in a fully local setup.
+This runbook is for validating the current ProofMembership stack on localnet. It covers the Anchor program, the web app, local projection files, and wallet-auth endpoints in a fully local setup.
 
 ## 1. Install tooling
 
@@ -58,18 +58,18 @@ Use separate wallets for:
 Example setup:
 
 ```bash
-mkdir -p ~/.config/solana/solnft
-solana-keygen new --outfile ~/.config/solana/solnft/admin.json
-solana-keygen new --outfile ~/.config/solana/solnft/owner.json
-solana-keygen new --outfile ~/.config/solana/solnft/member.json
+mkdir -p ~/.config/solana/proofmembership
+solana-keygen new --outfile ~/.config/solana/proofmembership/admin.json
+solana-keygen new --outfile ~/.config/solana/proofmembership/owner.json
+solana-keygen new --outfile ~/.config/solana/proofmembership/member.json
 ```
 
 Print the addresses:
 
 ```bash
-solana address -k ~/.config/solana/solnft/admin.json
-solana address -k ~/.config/solana/solnft/owner.json
-solana address -k ~/.config/solana/solnft/member.json
+solana address -k ~/.config/solana/proofmembership/admin.json
+solana address -k ~/.config/solana/proofmembership/owner.json
+solana address -k ~/.config/solana/proofmembership/member.json
 ```
 
 The local provider wallet defaults to the admin key in `Anchor.toml`.
@@ -79,7 +79,7 @@ The local provider wallet defaults to the admin key in `Anchor.toml`.
 From the repo root:
 
 ```bash
-cd /home/flow/dev/solnft
+cd /home/flow/dev/proofmembership
 pnpm install
 ```
 
@@ -88,17 +88,17 @@ pnpm install
 Create `apps/web/.env.local`:
 
 ```bash
-SOLNFT_AUTH_SECRET=replace_with_long_random_secret
-SOLNFT_ADMIN_WALLETS=ADMIN_PUBKEY
-SOLNFT_AUTH_DOMAIN=localhost
-SOLNFT_AUTH_URI=http://localhost:3000
-SOLNFT_CHAIN_ID=solana:localnet
+PROOFMEMBERSHIP_AUTH_SECRET=replace_with_long_random_secret
+PROOFMEMBERSHIP_ADMIN_WALLETS=ADMIN_PUBKEY
+PROOFMEMBERSHIP_AUTH_DOMAIN=localhost
+PROOFMEMBERSHIP_AUTH_URI=http://localhost:3000
+PROOFMEMBERSHIP_CHAIN_ID=solana:localnet
 ```
 
 Notes:
 
-- `SOLNFT_AUTH_SECRET` signs the session JWT cookie.
-- `SOLNFT_ADMIN_WALLETS` determines which verified wallets resolve to admin.
+- `PROOFMEMBERSHIP_AUTH_SECRET` signs the session JWT cookie.
+- `PROOFMEMBERSHIP_ADMIN_WALLETS` determines which verified wallets resolve to admin.
 - owner and member roles are inferred from the current read model.
 
 ## 5. Verify localnet program and provider configuration
@@ -110,7 +110,7 @@ The current program ID is configured in:
 
 The provider wallet defaults to:
 
-- `~/.config/solana/solnft/admin.json`
+- `~/.config/solana/proofmembership/admin.json`
 
 If you generate a new deploy keypair, update both locations before deploy:
 
@@ -133,7 +133,7 @@ pnpm build:web
 Run a single targeted test if needed:
 
 ```bash
-pnpm --filter @solnft/web test:unit -- src/lib/data/store.test.ts
+pnpm --filter @proofmembership/web test:unit -- src/lib/data/store.test.ts
 cargo test --manifest-path programs/membership_core/Cargo.toml split_handles_typical_fee
 ```
 
@@ -148,7 +148,7 @@ pnpm util:clean-start:local
 This script:
 
 - stops existing local validator, indexer, web app, and changelog watcher processes
-- clears `.solnft/indexer` and legacy `apps/web/.solnft/indexer`
+- clears `.proofmembership/indexer` and legacy `apps/web/.proofmembership/indexer`
 - starts `solana-test-validator` on `127.0.0.1:8899`
 - runs `anchor build`
 - deploys with `anchor deploy --provider.cluster localnet`
@@ -158,9 +158,9 @@ This script:
 Background logs are written to:
 
 - `/tmp/solana-test-validator.log`
-- `/tmp/solnft-indexer.log`
-- `/tmp/solnft-web.log`
-- `/tmp/solnft-changelog-watch.log`
+- `/tmp/proofmembership-indexer.log`
+- `/tmp/proofmembership-web.log`
+- `/tmp/proofmembership-changelog-watch.log`
 
 Stop and clean local processes/state with:
 
@@ -172,16 +172,16 @@ pnpm util:stop-all:local
 
 Optional media storage mode for campaign template uploads:
 
-- `SOLNFT_MEDIA_PROVIDER=local|arweave` (default `local`)
-- `SOLNFT_ARWEAVE_UPLOAD_URL=https://...` (required for `arweave`)
-- `SOLNFT_ARWEAVE_API_KEY=...` (optional bearer token for uploader)
+- `PROOFMEMBERSHIP_MEDIA_PROVIDER=local|arweave` (default `local`)
+- `PROOFMEMBERSHIP_ARWEAVE_UPLOAD_URL=https://...` (required for `arweave`)
+- `PROOFMEMBERSHIP_ARWEAVE_API_KEY=...` (optional bearer token for uploader)
 
 Optional storefront purchase mode:
 
-- `SOLNFT_PURCHASE_MODE=local|onchain` (default `local`)
-- `SOLNFT_RPC_URL=http://127.0.0.1:8899` (required for `onchain`)
-- `SOLNFT_PROGRAM_ID=...` (required for `onchain`)
-- `SOLNFT_PLATFORM_TREASURY=...` (required for `onchain`)
+- `PROOFMEMBERSHIP_PURCHASE_MODE=local|onchain` (default `local`)
+- `PROOFMEMBERSHIP_RPC_URL=http://127.0.0.1:8899` (required for `onchain`)
+- `PROOFMEMBERSHIP_PROGRAM_ID=...` (required for `onchain`)
+- `PROOFMEMBERSHIP_PLATFORM_TREASURY=...` (required for `onchain`)
 
 Open `http://localhost:3000`.
 
@@ -217,9 +217,9 @@ Open `http://localhost:3000`.
 After create/purchase actions, inspect:
 
 ```bash
-cat .solnft/indexer/read-model.json
-cat .solnft/indexer/events.json
-find .solnft/media -maxdepth 1 -type f | sort
+cat .proofmembership/indexer/read-model.json
+cat .proofmembership/indexer/events.json
+find .proofmembership/media -maxdepth 1 -type f | sort
 ```
 
 Confirm:
@@ -228,7 +228,7 @@ Confirm:
 - clubs and campaigns are persisted
 - membership purchases append memberships and assets
 - event log receives `platform_initialized`, `club_created`, `campaign_created`, and purchase events (`membership_purchased` for local mode and `membership_onchain_projected` for on-chain confirmed mode)
-- uploaded template media exists in `.solnft/media`
+- uploaded template media exists in `.proofmembership/media`
 
 ## 10. Validate localnet chain-side effects
 
@@ -263,7 +263,7 @@ If `pnpm util:clean-start:local` fails, run the steps manually:
 solana-test-validator -r
 anchor build
 anchor deploy --provider.cluster localnet
-pnpm --filter @solnft/indexer dev
+pnpm --filter @proofmembership/indexer dev
 pnpm dev:web
 ```
 
@@ -280,5 +280,5 @@ Use separate terminals for each long-running process.
 - one or more SOL campaigns are created
 - at least one membership is purchased successfully
 - metadata is served from `/api/metadata/[assetId]`
-- `.solnft/indexer/read-model.json` and `.solnft/indexer/events.json` reflect the actions
+- `.proofmembership/indexer/read-model.json` and `.proofmembership/indexer/events.json` reflect the actions
 - negative checks above behave as expected

@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <main className="container">
-      <h1>SolNFT Platform</h1>
+      <h1>ProofMembership Platform</h1>
       <p>Role-based UI shell is ready.</p>
       <div className="grid">
         <Link href="/admin">Contract Admin</Link>

@@ -1,6 +1,6 @@
-# SolNFT
+# ProofMembership
 
-SolNFT is a club membership contract and web platform built on Solana.
+ProofMembership is a club membership contract and web platform built on Solana.
 
 It is designed for membership communities such as sports membership clubs, rotary clubs, event communities, fan groups, and other subscription-based organizations.
 
@@ -37,21 +37,21 @@ pnpm dev:web
 
 Optional media storage configuration for campaign template uploads:
 
-- `SOLNFT_MEDIA_PROVIDER=local|arweave` (default: `local`)
-- `SOLNFT_ARWEAVE_UPLOAD_URL=https://...` (required when provider is `arweave`)
-- `SOLNFT_ARWEAVE_API_KEY=...` (optional bearer token header for your uploader)
+- `PROOFMEMBERSHIP_MEDIA_PROVIDER=local|arweave` (default: `local`)
+- `PROOFMEMBERSHIP_ARWEAVE_UPLOAD_URL=https://...` (required when provider is `arweave`)
+- `PROOFMEMBERSHIP_ARWEAVE_API_KEY=...` (optional bearer token header for your uploader)
 
-When `SOLNFT_MEDIA_PROVIDER=arweave`, `/api/owner/template-upload` will send the image to your configured uploader endpoint and store the returned permanent URI as the campaign template image URI.
+When `PROOFMEMBERSHIP_MEDIA_PROVIDER=arweave`, `/api/owner/template-upload` will send the image to your configured uploader endpoint and store the returned permanent URI as the campaign template image URI.
 
 Optional purchase mode configuration:
 
-- `SOLNFT_PURCHASE_MODE=local|onchain` (default: `local`)
+- `PROOFMEMBERSHIP_PURCHASE_MODE=local|onchain` (default: `local`)
 
-When using `SOLNFT_PURCHASE_MODE=onchain`, configure:
+When using `PROOFMEMBERSHIP_PURCHASE_MODE=onchain`, configure:
 
-- `SOLNFT_RPC_URL=https://...`
-- `SOLNFT_PROGRAM_ID=...`
-- `SOLNFT_PLATFORM_TREASURY=...`
+- `PROOFMEMBERSHIP_RPC_URL=https://...`
+- `PROOFMEMBERSHIP_PROGRAM_ID=...`
+- `PROOFMEMBERSHIP_PLATFORM_TREASURY=...`
 
 On-chain purchase mode also requires campaign-to-onchain account mapping (`campaign.onchainAddress`) in the read model.
 Use the admin panel section `Map Campaign Onchain Address` to set this mapping.
@@ -82,13 +82,13 @@ pnpm util:stop-all:local
 
 ## Local data files
 
-- .solnft/indexer/read-model.json
-- .solnft/indexer/events.json
-- .solnft/media/
+- .proofmembership/indexer/read-model.json
+- .proofmembership/indexer/events.json
+- .proofmembership/media/
 
 ## Notes
 
 - Payment token in the current web flow is SOL.
 - The Anchor `purchase_membership` instruction now mints a real SPL NFT (mint + associated token account + mint_to) and records the mint address in membership state.
-- In `SOLNFT_PURCHASE_MODE=onchain`, the storefront builds/signs the Anchor purchase instruction and confirmation is validated from RPC before read-model projection.
+- In `PROOFMEMBERSHIP_PURCHASE_MODE=onchain`, the storefront builds/signs the Anchor purchase instruction and confirmation is validated from RPC before read-model projection.
 - The projected storefront membership record remains a local read-model projection (`provenance: onchain`) until a full indexer ingestion pipeline is wired.

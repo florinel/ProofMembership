@@ -40,7 +40,7 @@ function resolveRepoRoot(): string {
   return cwd;
 }
 
-const MEDIA_DIR = path.join(resolveRepoRoot(), ".solnft", "media");
+const MEDIA_DIR = path.join(resolveRepoRoot(), ".proofmembership", "media");
 
 function ensureMediaDir(): void {
   if (!fs.existsSync(MEDIA_DIR)) {
@@ -97,7 +97,7 @@ const localMediaStorageProvider: MediaStorageProvider = {
 
 const arweaveMediaStorageProvider: MediaStorageProvider = {
   async saveTemplateImage(file: File): Promise<SaveMediaResult> {
-    const uploadUrl = process.env.SOLNFT_ARWEAVE_UPLOAD_URL;
+    const uploadUrl = process.env.PROOFMEMBERSHIP_ARWEAVE_UPLOAD_URL;
     if (!uploadUrl) {
       throw new Error("arweave_upload_url_not_configured");
     }
@@ -106,7 +106,7 @@ const arweaveMediaStorageProvider: MediaStorageProvider = {
     form.set("file", file, file.name || `template.${mapExt(file.type)}`);
 
     const headers: Record<string, string> = {};
-    const apiKey = process.env.SOLNFT_ARWEAVE_API_KEY;
+    const apiKey = process.env.PROOFMEMBERSHIP_ARWEAVE_API_KEY;
     if (apiKey) {
       headers.authorization = `Bearer ${apiKey}`;
     }
@@ -146,7 +146,7 @@ const arweaveMediaStorageProvider: MediaStorageProvider = {
 };
 
 function resolveMediaStorageProvider(): MediaStorageProvider {
-  const provider = (process.env.SOLNFT_MEDIA_PROVIDER ?? "local").toLowerCase();
+  const provider = (process.env.PROOFMEMBERSHIP_MEDIA_PROVIDER ?? "local").toLowerCase();
   if (provider === "arweave") {
     return arweaveMediaStorageProvider;
   }

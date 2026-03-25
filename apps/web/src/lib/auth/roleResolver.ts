@@ -2,7 +2,7 @@ import type { AppRole } from "@/lib/auth/roles";
 import { isApprovedOwner, listMembershipsByWallet } from "@/lib/data/store";
 
 function getAdminWalletSet(): Set<string> {
-  const fromEnv = (process.env.SOLNFT_ADMIN_WALLETS ?? "")
+  const fromEnv = (process.env.PROOFMEMBERSHIP_ADMIN_WALLETS ?? "")
     .split(",")
     .map((wallet) => wallet.trim().toLowerCase())
     .filter(Boolean);

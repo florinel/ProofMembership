@@ -14,7 +14,7 @@ dist/
 coverage/
 
 # Local runtime data (read model, events, uploaded media, PID files)
-.solnft/
+.proofmembership/
 
 # Environment variables
 .env

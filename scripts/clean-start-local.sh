@@ -8,19 +8,19 @@ cd "${REPO_ROOT}"
 
 echo "[1/11] Stopping local processes (if running)..."
 pkill -f solana-test-validator || true
-pkill -f "pnpm --filter @solnft/indexer dev" || true
+pkill -f "pnpm --filter @proofmembership/indexer dev" || true
 pkill -f "pnpm dev:web" || true
 pkill -f "next dev" || true
-if [ -f .solnft/changelog-watch.pid ]; then
-  kill "$(cat .solnft/changelog-watch.pid)" >/dev/null 2>&1 || true
-  rm -f .solnft/changelog-watch.pid
+if [ -f .proofmembership/changelog-watch.pid ]; then
+  kill "$(cat .proofmembership/changelog-watch.pid)" >/dev/null 2>&1 || true
+  rm -f .proofmembership/changelog-watch.pid
 fi
 
 echo "[2/11] Resetting persisted read-model data..."
-rm -rf .solnft/indexer
-rm -rf apps/web/.solnft/indexer
-mkdir -p .solnft/indexer
-printf '%s' '[]' > .solnft/indexer/events.json
+rm -rf .proofmembership/indexer
+rm -rf apps/web/.proofmembership/indexer
+mkdir -p .proofmembership/indexer
+printf '%s' '[]' > .proofmembership/indexer/events.json
 
 echo "[3/11] Preparing deploy output folder..."
 mkdir -p target/deploy
@@ -63,19 +63,19 @@ echo "[7/11] Deploying program to localnet..."
 anchor deploy --provider.cluster localnet
 
 echo "[8/11] Starting indexer service..."
-nohup pnpm --filter @solnft/indexer dev > /tmp/solnft-indexer.log 2>&1 &
+nohup pnpm --filter @proofmembership/indexer dev > /tmp/proofmembership-indexer.log 2>&1 &
 
 echo "[9/11] Starting web app..."
-nohup pnpm dev:web > /tmp/solnft-web.log 2>&1 &
+nohup pnpm dev:web > /tmp/proofmembership-web.log 2>&1 &
 
 echo "[10/11] Starting changelog watcher..."
-mkdir -p .solnft
-nohup node scripts/changelog-watch.mjs > /tmp/solnft-changelog-watch.log 2>&1 &
-echo $! > .solnft/changelog-watch.pid
+mkdir -p .proofmembership
+nohup node scripts/changelog-watch.mjs > /tmp/proofmembership-changelog-watch.log 2>&1 &
+echo $! > .proofmembership/changelog-watch.pid
 
 echo "[11/11] Done."
 echo "Web:       http://localhost:3000"
 echo "Validator: /tmp/solana-test-validator.log"
-echo "Indexer:   /tmp/solnft-indexer.log"
-echo "Web app:   /tmp/solnft-web.log"
-echo "Changelog: /tmp/solnft-changelog-watch.log"
+echo "Indexer:   /tmp/proofmembership-indexer.log"
+echo "Web app:   /tmp/proofmembership-web.log"
+echo "Changelog: /tmp/proofmembership-changelog-watch.log"

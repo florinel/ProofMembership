@@ -1,5 +1,5 @@
 {
-  "name": "solnft",
+  "name": "proofmembership",
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@9.12.3",
@@ -10,10 +10,10 @@
     "util:stop:devnet": "bash ./scripts/stop-devnet.sh",
     "util:deploy:devnet": "bash ./scripts/deploy-devnet.sh",
     "util:watch:changelog": "node ./scripts/changelog-watch.mjs",
-    "dev:web": "pnpm --filter @solnft/web dev",
-    "build:web": "pnpm --filter @solnft/web build",
-    "lint:web": "pnpm --filter @solnft/web lint",
-    "test:web:unit": "pnpm --filter @solnft/web test:unit",
+    "dev:web": "pnpm --filter @proofmembership/web dev",
+    "build:web": "pnpm --filter @proofmembership/web build",
+    "lint:web": "pnpm --filter @proofmembership/web lint",
+    "test:web:unit": "pnpm --filter @proofmembership/web test:unit",
     "test:backend:unit": "cargo test --manifest-path programs/membership_core/Cargo.toml",
     "check": "pnpm lint:web"
   }

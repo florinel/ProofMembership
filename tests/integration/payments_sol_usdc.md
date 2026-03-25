@@ -25,8 +25,8 @@ Use this checklist when validating membership purchases and fee-splitting behavi
    - confirm the split rounds down safely when needed
 
 4. Verify read-model and metadata output.
-   - purchased memberships appear in `.solnft/indexer/read-model.json`
-   - `membership_purchased` events appear in `.solnft/indexer/events.json`
+   - purchased memberships appear in `.proofmembership/indexer/read-model.json`
+   - `membership_purchased` events appear in `.proofmembership/indexer/events.json`
    - purchased assets expose metadata via `/api/metadata/[assetId]`
 
 5. Negative checks.

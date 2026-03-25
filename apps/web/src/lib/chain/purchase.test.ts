@@ -162,23 +162,23 @@ function seedCampaignWithOnchainAddress(): { campaignId: string } {
 }
 
 describe("purchaseMembershipOnchain preflight", () => {
-  const originalRpc = process.env.SOLNFT_RPC_URL;
-  const originalProgramId = process.env.SOLNFT_PROGRAM_ID;
-  const originalTreasury = process.env.SOLNFT_PLATFORM_TREASURY;
+  const originalRpc = process.env.PROOFMEMBERSHIP_RPC_URL;
+  const originalProgramId = process.env.PROOFMEMBERSHIP_PROGRAM_ID;
+  const originalTreasury = process.env.PROOFMEMBERSHIP_PLATFORM_TREASURY;
 
   beforeEach(() => {
     vi.restoreAllMocks();
     __resetStoreForTests();
-    process.env.SOLNFT_RPC_URL = "http://127.0.0.1:8899";
-    process.env.SOLNFT_PROGRAM_ID = TEST_PROGRAM_ID;
-    process.env.SOLNFT_PLATFORM_TREASURY = TEST_TREASURY;
+    process.env.PROOFMEMBERSHIP_RPC_URL = "http://127.0.0.1:8899";
+    process.env.PROOFMEMBERSHIP_PROGRAM_ID = TEST_PROGRAM_ID;
+    process.env.PROOFMEMBERSHIP_PLATFORM_TREASURY = TEST_TREASURY;
     mockOnchainCampaignPointers();
   });
 
   afterEach(() => {
-    process.env.SOLNFT_RPC_URL = originalRpc;
-    process.env.SOLNFT_PROGRAM_ID = originalProgramId;
-    process.env.SOLNFT_PLATFORM_TREASURY = originalTreasury;
+    process.env.PROOFMEMBERSHIP_RPC_URL = originalRpc;
+    process.env.PROOFMEMBERSHIP_PROGRAM_ID = originalProgramId;
+    process.env.PROOFMEMBERSHIP_PLATFORM_TREASURY = originalTreasury;
     vi.restoreAllMocks();
   });
 
@@ -195,14 +195,14 @@ describe("purchaseMembershipOnchain preflight", () => {
 
   it("rejects missing required env", async () => {
     const { campaignId } = seedCampaignWithOnchainAddress();
-    delete process.env.SOLNFT_RPC_URL;
+    delete process.env.PROOFMEMBERSHIP_RPC_URL;
 
     await expect(
       purchaseMembershipOnchain({
         campaignId,
         buyerWallet: TEST_BUYER,
       })
-    ).rejects.toThrowError("missing_env_solnft_rpc_url");
+    ).rejects.toThrowError("missing_env_proofmembership_rpc_url");
   });
 
   it("returns purchase intent when preflight passes", async () => {
