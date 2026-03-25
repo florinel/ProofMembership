@@ -78,6 +78,16 @@ pnpm util:clean-start:local
 pnpm util:stop-all:local
 ```
 
+For devnet app services, use:
+
+```bash
+pnpm util:start:devnet
+pnpm util:console:devnet
+pnpm util:stop:devnet
+```
+
+`pnpm util:console:devnet` tails the devnet web, indexer, and changelog logs with prefixes so you can watch live info and errors in one terminal.
+
 ## Key routes
 
 - /admin: platform setup, owner application review (approve with fee charge or reject), fee policy controls

@@ -43,7 +43,7 @@ anchor --version
 node -v
 npm -v
 corepack enable
-corepack prepare pnpm@9.12.3 --activate
+corepack prepare pnpm@10.33.0 --activate
 pnpm -v
 ```
 
@@ -159,6 +159,20 @@ solana program show 3Ne2f2pLbgpsWL3v9xCDy6VjKmoqHjbBtEJL3a6tMuCs
 In one terminal:
 
 ```bash
+pnpm util:start:devnet
+```
+
+In another terminal, open the combined live log console:
+
+```bash
+pnpm util:console:devnet
+```
+
+If you want to run the services manually instead, use:
+
+In one terminal:
+
+```bash
 pnpm --filter @proofmembership/indexer dev
 ```
 
@@ -169,6 +183,12 @@ pnpm dev:web
 ```
 
 The current indexer service is still a scaffold, but the web app also writes a local read model and event log under `.proofmembership/indexer/`.
+
+The devnet console tails these files together:
+
+- `/tmp/proofmembership-indexer-devnet.log`
+- `/tmp/proofmembership-web-devnet.log`
+- `/tmp/proofmembership-changelog-watch-devnet.log`
 
 ## 9. Run the role and purchase flow
 

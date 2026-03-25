@@ -43,7 +43,7 @@ anchor --version
 node -v
 npm -v
 corepack enable
-corepack prepare pnpm@9.12.3 --activate
+corepack prepare pnpm@10.33.0 --activate
 pnpm -v
 ```
 

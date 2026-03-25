@@ -9,6 +9,22 @@ All notable changes to this project will be documented in this file.
 
 _Auto-generated from the local changelog watcher. Curated release notes should stay in the sections above._
 
+- 2026-03-25 23:49:20.724 UTC - Updated `scripts/start-devnet.sh`
+- 2026-03-25 23:49:20.724 UTC - Updated `scripts/devnet-console.sh`
+- 2026-03-25 23:49:20.724 UTC - Updated `.github/copilot-instructions.md`
+- 2026-03-25 23:49:20.724 UTC - Updated `package.json`
+- 2026-03-25 23:49:20.724 UTC - Updated `DEVNET_TESTING.md`
+- 2026-03-25 23:49:20.724 UTC - Updated `README.md`
+- 2026-03-25 23:47:11.941 UTC - Updated `.github/copilot-instructions.md`
+- 2026-03-25 23:47:11.941 UTC - Updated `DEVNET_TESTING.md`
+- 2026-03-25 23:47:11.941 UTC - Updated `README.md`
+- 2026-03-25 23:47:01.710 UTC - Created `scripts/devnet-console.sh`
+- 2026-03-25 23:46:59.709 UTC - Updated `scripts/start-devnet.sh`
+- 2026-03-25 23:46:59.709 UTC - Updated `package.json`
+- 2026-03-25 23:44:55.028 UTC - Updated `package.json`
+- 2026-03-25 23:44:55.028 UTC - Updated `DEVNET_TESTING.md`
+- 2026-03-25 23:37:26.126 UTC - Updated `package.json`
+- 2026-03-25 23:37:26.126 UTC - Updated `DEVNET_TESTING.md`
 - 2026-03-25 22:44:37.207 UTC - Updated `programs/membership_core/src/utils.rs`
 - 2026-03-25 22:44:37.207 UTC - Updated `programs/membership_core/src/state.rs`
 - 2026-03-25 22:44:37.207 UTC - Updated `programs/membership_core/src/lib.rs`
@@ -33,22 +49,6 @@ _Auto-generated from the local changelog watcher. Curated release notes should s
 - 2026-03-25 22:43:22.899 UTC - Updated `programs/membership_core/src/utils.rs`
 - 2026-03-25 22:43:18.899 UTC - Updated `programs/membership_core/src/instructions/purchase_membership.rs`
 - 2026-03-25 22:43:12.898 UTC - Updated `programs/membership_core/src/instructions/set_club_fee_policy.rs`
-- 2026-03-25 22:43:06.757 UTC - Updated `programs/membership_core/src/instructions/create_campaign.rs`
-- 2026-03-25 22:42:58.755 UTC - Updated `programs/membership_core/src/instructions/create_club.rs`
-- 2026-03-25 22:42:52.754 UTC - Updated `programs/membership_core/src/instructions/initialize_platform.rs`
-- 2026-03-25 22:42:48.752 UTC - Updated `programs/membership_core/src/state.rs`
-- 2026-03-25 22:42:40.749 UTC - Updated `programs/membership_core/src/lib.rs`
-- 2026-03-25 22:42:32.482 UTC - Updated `apps/web/src/app/api/storefront/purchase/confirm/route.ts`
-- 2026-03-25 22:42:28.482 UTC - Updated `apps/web/src/lib/media/mediaStore.ts`
-- 2026-03-25 22:42:20.482 UTC - Updated `apps/web/src/lib/auth/walletChallenge.ts`
-- 2026-03-25 22:42:16.480 UTC - Updated `apps/web/src/lib/auth/token.ts`
-- 2026-03-25 22:42:10.481 UTC - Updated `apps/web/src/lib/auth/roleResolver.ts`
-- 2026-03-25 22:42:06.481 UTC - Updated `apps/web/src/lib/chain/purchase.ts`
-- 2026-03-25 22:41:56.294 UTC - Updated `apps/web/src/lib/data/store.ts`
-- 2026-03-25 22:40:12.138 UTC - Updated `USER_MANUAL.md`
-- 2026-03-25 22:39:54.137 UTC - Updated `USER_MANUAL.md`
-- 2026-03-25 22:39:42.101 UTC - Updated `USER_MANUAL.md`
-- 2026-03-25 22:39:34.101 UTC - Updated `USER_MANUAL.md`
 <!-- AUTO-CHANGELOG-END -->
 
 ### Improvements

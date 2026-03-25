@@ -12,6 +12,7 @@
 - Run a single Rust test with `cargo test --manifest-path programs/membership_core/Cargo.toml split_handles_typical_fee`.
 - Start the indexer scaffold with `pnpm --filter @proofmembership/indexer dev`.
 - Start devnet helper services with `pnpm util:start:devnet` and stop them with `pnpm util:stop:devnet`.
+- Open the live devnet log console with `pnpm util:console:devnet`.
 - Deploy to devnet with `pnpm util:deploy:devnet`.
 - Start the full local stack with `pnpm util:clean-start:local` and stop/reset it with `pnpm util:stop-all:local`.
 
