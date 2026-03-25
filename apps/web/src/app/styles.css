@@ -53,6 +53,10 @@ a {
   padding: 2rem 1rem;
 }
 
+.container-wide {
+  max-width: 1240px;
+}
+
 .grid {
   margin-top: 1rem;
   display: grid;
@@ -78,6 +82,15 @@ a {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.75rem;
+}
+
+.admin-flow-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
+}
+
+.panel-wide {
+  grid-column: span 2;
 }
 
 .kicker {
@@ -117,13 +130,49 @@ a {
 }
 
 .form-grid input,
-.form-grid select {
+.form-grid select,
+.form-grid textarea,
+.application-actions input,
+.application-actions textarea {
   border: 1px solid var(--input-border);
   background: var(--surface);
   color: var(--ink);
   border-radius: 8px;
   padding: 0.55rem 0.65rem;
   font: inherit;
+}
+
+.application-list {
+  gap: 0.75rem;
+}
+
+.application-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9rem;
+  background: color-mix(in srgb, var(--surface) 94%, var(--bg-accent) 6%);
+}
+
+.application-card p {
+  margin: 0.35rem 0;
+}
+
+.application-actions {
+  margin-top: 0.6rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.application-actions label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .panel-wide {
+    grid-column: span 1;
+  }
 }
 
 .btn-primary {

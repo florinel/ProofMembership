@@ -10,6 +10,7 @@ import {
   listCampaignsByClub,
   listMembershipsByWallet,
   purchaseMembership,
+  rejectOwnerApplication,
   submitOwnerApplication,
 } from "@/lib/data/store";
 
@@ -178,6 +179,33 @@ describe("store lifecycle", () => {
         expiresAtUnix: null,
       })
     ).toThrowError("template_image_required");
+  });
+
+  it("allows admin rejection of owner application without charging approval fee", () => {
+    initializePlatform({
+      ownerApprovalFee: 0.5,
+      clubCreationFee: 1,
+      campaignCreationFee: 0.5,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
+    });
+
+    const application = submitOwnerApplication({
+      wallet: "owner-wallet-reject",
+      description: "Application missing ownership docs",
+    });
+
+    const rejected = rejectOwnerApplication({
+      applicationId: application.id,
+      reviewNote: "Please include supporting documents.",
+    });
+
+    const overview = getAdminOverview();
+
+    expect(rejected.status).toBe("rejected");
+    expect(rejected.reviewNote).toContain("supporting documents");
+    expect(overview.pendingOwnerApplications).toBe(0);
+    expect(overview.platformBalanceAtomic).toBe("0.000000");
   });
 
   it("blocks live mint purchase before start timestamp", () => {

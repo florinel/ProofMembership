@@ -7,13 +7,14 @@ This guide explains how to run and use the current SolNFT implementation from th
 ### Contract admin
 
 - initializes the platform fee configuration
-- creates clubs for owners
+- reviews owner applications and approves (with onboarding fee collection) or rejects
 - reviews club, campaign, and balance overview data
 
 Primary route: `/admin`
 
 ### Club owner
 
+- applies for owner role before creating clubs
 - reviews campaigns for owned clubs
 - uploads template media
 - creates membership campaigns
@@ -116,23 +117,20 @@ Use `POST /api/auth/logout` to clear the signed session.
 4. Submit the form.
 5. Click `Refresh Overview` to confirm the config is stored.
 
-### Step B: create a club
+### Step B: review owner application as admin
 
 1. Stay on `/admin`.
-2. In `Approve Owner Application`, enter:
-  - application ID
-   - fee paid
-3. Submit the form to approve the owner wallet.
+2. In `Review Owner Applications`, inspect the pending application.
+3. Approve to collect the onboarding fee and unlock owner role, or reject with an optional review note.
 
 ### Step C: apply and create a club as owner
 
-1. Set the role to owner from `/dev`.
-2. Open `/owner`.
-3. In `Apply for Club Ownership`, enter:
+1. Open `/owner`.
+2. In `Apply for Club Ownership`, enter:
   - wallet
   - club description
 4. Submit the application and copy the returned application ID.
-5. Ask admin to approve the application.
+5. Ask admin to review and approve the application.
 6. In `Create Club`, enter:
   - approved owner wallet
   - club slug
@@ -144,9 +142,9 @@ Use `POST /api/auth/logout` to clear the signed session.
 ### Step D: create a campaign as owner
 
 1. Open `/owner/campaigns/new`.
-3. Enter the owner wallet that matches an existing club.
-4. Confirm the club dropdown populates from owned clubs.
-5. Set:
+2. Enter the owner wallet that matches an existing club.
+3. Confirm the club dropdown populates from owned clubs.
+4. Set:
    - campaign name
    - price
   - payment token (`SOL`)
@@ -155,8 +153,8 @@ Use `POST /api/auth/logout` to clear the signed session.
    - template image URI or upload a template image
    - max supply
    - expiry mode and optional end date
-6. Submit the form.
-7. Return to `/owner` to review the campaign in the owner table.
+5. Submit the form.
+6. Return to `/owner` to review the campaign in the owner table.
 
 ### Step E: purchase from storefront
 
@@ -215,8 +213,8 @@ cargo test --manifest-path programs/membership_core/Cargo.toml split_handles_typ
 - `403 admin_role_required` on `/admin`
   - Set the admin role from `/dev`, or use a valid signed session whose wallet resolves to admin.
 
-- `403 owner_role_required` on `/owner`
-  - Set the owner role from `/dev`, or use a wallet that owns a club in the current read model.
+- `403 owner_role_required` on owner-only routes like `/owner/campaigns/new`
+  - Submit an owner application from `/owner`, then use a wallet session that has been approved by admin.
 
 - `template_image_required` while creating a campaign
   - Upload or provide a template image URI before submitting.

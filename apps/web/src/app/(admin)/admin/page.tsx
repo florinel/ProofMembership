@@ -21,7 +21,7 @@ export default async function AdminPage() {
   }
 
   return (
-    <main className="container">
+    <main className="container container-wide">
       <h1>Contract Admin</h1>
       <div className="stats-grid">
         <section className="panel">

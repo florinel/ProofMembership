@@ -25,9 +25,10 @@ export default async function OwnerPage() {
       <main className="container">
         <h1>Club Owner</h1>
         <div className="panel">
-          <p>This route requires owner role.</p>
-          <p>Use /auth/wallet to test wallet sign-in or /dev for local role simulation.</p>
+          <p>Apply for owner approval below.</p>
+          <p>Admin will review your application, collect onboarding fees on approval, and then unlock owner access.</p>
         </div>
+        <OwnerOnboardingClient initialWallet={connectedWallet ?? undefined} canCreateClub={false} />
       </main>
     );
   }

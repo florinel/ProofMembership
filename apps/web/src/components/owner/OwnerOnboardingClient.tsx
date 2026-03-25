@@ -2,7 +2,13 @@
 
 import { FormEvent, useState } from "react";
 
-export default function OwnerOnboardingClient({ initialWallet }: { initialWallet?: string }) {
+export default function OwnerOnboardingClient({
+  initialWallet,
+  canCreateClub = true,
+}: {
+  initialWallet?: string;
+  canCreateClub?: boolean;
+}) {
   const [status, setStatus] = useState("Ready");
   const [wallet, setWallet] = useState(initialWallet ?? "");
   const walletLocked = Boolean(initialWallet);
@@ -12,7 +18,7 @@ export default function OwnerOnboardingClient({ initialWallet }: { initialWallet
     const form = new FormData(event.currentTarget);
 
     setStatus("Submitting owner application...");
-    const response = await fetch("/api/owner/applications", {
+    const response = await fetch("/api/owner-applications", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -79,36 +85,43 @@ export default function OwnerOnboardingClient({ initialWallet }: { initialWallet
         </form>
       </section>
 
-      <section className="panel">
-        <h3>Create Club</h3>
-        <p>Available after admin approval and owner onboarding fee payment.</p>
-        <form className="form-grid" onSubmit={createClub}>
-          <label>
-            Approved owner wallet
-            <input
-              name="ownerWallet"
-              type="text"
-              placeholder="OwnerWallet111"
-              value={wallet}
-              onChange={(event) => setWallet(event.target.value)}
-              readOnly={walletLocked}
-            />
-          </label>
-          <label>
-            Club slug
-            <input name="slug" type="text" placeholder="golden-greens" />
-          </label>
-          <label>
-            Club metadata URI
-            <input name="metadataUri" type="text" placeholder="https://example.com/club.json" />
-          </label>
-          <label>
-            Club creation fee paid
-            <input name="feePaid" type="number" min="0" step="0.01" defaultValue="1" />
-          </label>
-          <button className="btn-primary" type="submit">Create Club</button>
-        </form>
-      </section>
+      {canCreateClub ? (
+        <section className="panel">
+          <h3>Create Club</h3>
+          <p>Available after admin approval and owner onboarding fee payment.</p>
+          <form className="form-grid" onSubmit={createClub}>
+            <label>
+              Approved owner wallet
+              <input
+                name="ownerWallet"
+                type="text"
+                placeholder="OwnerWallet111"
+                value={wallet}
+                onChange={(event) => setWallet(event.target.value)}
+                readOnly={walletLocked}
+              />
+            </label>
+            <label>
+              Club slug
+              <input name="slug" type="text" placeholder="golden-greens" />
+            </label>
+            <label>
+              Club metadata URI
+              <input name="metadataUri" type="text" placeholder="https://example.com/club.json" />
+            </label>
+            <label>
+              Club creation fee paid
+              <input name="feePaid" type="number" min="0" step="0.01" defaultValue="1" />
+            </label>
+            <button className="btn-primary" type="submit">Create Club</button>
+          </form>
+        </section>
+      ) : (
+        <section className="panel">
+          <h3>Create Club</h3>
+          <p>Club creation is unlocked after admin approval and onboarding fee collection.</p>
+        </section>
+      )}
 
       <section className="panel">
         <h3>Status</h3>

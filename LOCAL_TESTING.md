@@ -177,13 +177,14 @@ Open `http://localhost:3000`.
 1. Use `/dev` to set the admin role for local UI gating, or use wallet-auth endpoints to establish a signed session.
 2. Open `/admin`.
 3. Initialize the platform with owner approval fee, club fee, campaign fee, and campaign fee BPS.
-4. Approve a pending owner application.
+4. Review a pending owner application.
+5. Approve with onboarding fee collection, or reject with review notes.
 
 ### Owner flow
 
-1. Switch to owner role.
-2. Open `/owner` and submit an ownership application with wallet + description.
-3. After admin approval, create a club as the approved owner.
+1. Open `/owner` and submit an ownership application with wallet + description.
+2. Ask admin to approve the application.
+3. After approval, access owner-only management and create a club.
 4. Open `/owner/campaigns/new`.
 5. Upload a template image or provide a template URI.
 6. Create one or more SOL campaigns.
@@ -231,8 +232,9 @@ For SOL purchases, verify platform and owner balances update according to config
 Run these intentionally:
 
 - visit `/admin` without admin role and confirm the route is blocked
-- visit `/owner` without owner role and confirm the route is blocked
-- call `/api/admin/*` or `/api/owner/*` without the required role and confirm `403`
+- visit `/owner` without owner role and confirm owner application is still available
+- call `/api/admin/*` without the required role and confirm `403`
+- call `/api/owner/*` (except `/api/owner-applications`) without owner role and confirm `403`
 - submit campaign creation without a template image and confirm `template_image_required`
 - purchase a future `live_event` campaign before its start time and confirm `mint_not_started`
 - submit invalid wallet challenge/verify data and confirm auth rejection
@@ -258,7 +260,7 @@ Use separate terminals for each long-running process.
 - program builds and deploys to localnet
 - admin, owner, and member wallets exist and can be used in flow testing
 - platform initialization succeeds
-- owner application approval succeeds
+- owner application review succeeds (approve and reject paths)
 - club creation succeeds
 - one or more SOL campaigns are created
 - at least one membership is purchased successfully

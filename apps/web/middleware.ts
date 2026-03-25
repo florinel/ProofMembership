@@ -42,6 +42,7 @@ function forbidden(pathname: string, message: string): NextResponse {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   let role = getRole(request);
+  const isPublicOwnerApplicationRoute = pathname === "/owner" || pathname === "/api/owner-applications";
 
   const sessionToken = request.cookies.get(getSessionCookieName())?.value;
   if (sessionToken) {
@@ -60,6 +61,10 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/owner") || pathname.startsWith("/api/owner")) {
+    if (isPublicOwnerApplicationRoute) {
+      return NextResponse.next();
+    }
+
     if (!hasRole(role, "owner")) {
       return forbidden(pathname, "owner_role_required");
     }
@@ -69,5 +74,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/owner/:path*", "/api/admin/:path*", "/api/owner/:path*"],
+  matcher: ["/admin/:path*", "/owner/:path*", "/api/admin/:path*", "/api/owner/:path*", "/api/owner-applications"],
 };

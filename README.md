@@ -51,8 +51,8 @@ pnpm util:stop-all:local
 
 ## Key routes
 
-- /admin: platform setup, owner application approval, fee policy controls
-- /owner: ownership application, club creation, owner management views
+- /admin: platform setup, owner application review (approve with fee charge or reject), fee policy controls
+- /owner: public owner application plus owner management after approval
 - /owner/campaigns/new: campaign creation flow for approved owners
 - /storefront: member purchase flow
 

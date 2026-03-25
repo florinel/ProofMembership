@@ -26,12 +26,16 @@ type OwnerApplicationResponse = {
   wallet: string;
   description: string;
   status: "pending" | "approved" | "rejected";
+  reviewedAtUnix?: number | null;
+  reviewNote?: string | null;
 };
 
 export default function AdminFlowClient() {
   const [status, setStatus] = useState("Ready");
   const [overview, setOverview] = useState<AdminOverviewResponse | null>(null);
   const [pendingApplications, setPendingApplications] = useState<OwnerApplicationResponse[]>([]);
+  const [approvalFeeById, setApprovalFeeById] = useState<Record<string, string>>({});
+  const [reviewNoteById, setReviewNoteById] = useState<Record<string, string>>({});
 
   async function refreshOverview() {
     const [overviewResponse, applicationsResponse] = await Promise.all([
@@ -46,6 +50,12 @@ export default function AdminFlowClient() {
 
     setOverview(overviewData);
     setPendingApplications(applicationsData.pending ?? []);
+
+    const nextFeeState: Record<string, string> = {};
+    for (const application of applicationsData.pending ?? []) {
+      nextFeeState[application.id] = String(overviewData.config.ownerApprovalFee);
+    }
+    setApprovalFeeById(nextFeeState);
   }
 
   async function initializePlatform(event: FormEvent<HTMLFormElement>) {
@@ -103,22 +113,20 @@ export default function AdminFlowClient() {
     setStatus("Club fee policy updated.");
   }
 
-  async function approveApplication(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const applicationId = String(form.get("applicationId") ?? "").trim();
+  async function approveApplication(applicationId: string) {
+    const feePaid = Number(approvalFeeById[applicationId] ?? overview?.config.ownerApprovalFee ?? 0);
     if (!applicationId) {
       setStatus("Application ID is required.");
       return;
     }
 
-    setStatus("Approving owner application...");
+    setStatus(`Approving owner application ${applicationId}...`);
 
     const response = await fetch(`/api/admin/owner-applications/${encodeURIComponent(applicationId)}/approve`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        feePaid: Number(form.get("feePaid") ?? 0),
+        feePaid,
       }),
     });
 
@@ -128,12 +136,38 @@ export default function AdminFlowClient() {
       return;
     }
 
-    setStatus("Owner application approved.");
+    setStatus(`Owner application approved: ${applicationId}`);
+    await refreshOverview();
+  }
+
+  async function rejectApplication(applicationId: string) {
+    if (!applicationId) {
+      setStatus("Application ID is required.");
+      return;
+    }
+
+    setStatus(`Rejecting owner application ${applicationId}...`);
+
+    const response = await fetch(`/api/admin/owner-applications/${encodeURIComponent(applicationId)}/reject`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        reviewNote: reviewNoteById[applicationId] ?? "",
+      }),
+    });
+
+    const result = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      setStatus(`Owner rejection failed: ${result.error ?? "unknown"}`);
+      return;
+    }
+
+    setStatus(`Owner application rejected: ${applicationId}`);
     await refreshOverview();
   }
 
   return (
-    <div className="stats-grid">
+    <div className="stats-grid admin-flow-grid">
       <section className="panel">
         <h3>Initialize Platform</h3>
         <form className="form-grid" onSubmit={initializePlatform}>
@@ -161,26 +195,52 @@ export default function AdminFlowClient() {
         </form>
       </section>
 
-      <section className="panel">
-        <h3>Approve Owner Application</h3>
-        <form className="form-grid" onSubmit={approveApplication}>
-          <label>
-            Application ID
-            <input name="applicationId" type="text" placeholder="oapp-..." />
-          </label>
-          <label>
-            Fee paid
-            <input name="feePaid" type="number" step="0.01" defaultValue="0.5" min="0" />
-          </label>
-          <button className="btn-primary" type="submit">Approve Application</button>
-        </form>
+      <section className="panel panel-wide">
+        <h3>Review Owner Applications</h3>
+        <p>Approve to charge onboarding fees and unlock owner role, or reject with review notes.</p>
         {pendingApplications.length ? (
-          <div className="stack-sm">
-            <p><strong>Pending applications</strong></p>
+          <div className="stack-sm application-list">
             {pendingApplications.map((application) => (
-              <p key={application.id}>
-                {application.id} | {application.wallet} | {application.description}
-              </p>
+              <article key={application.id} className="application-card">
+                <p><strong>{application.id}</strong></p>
+                <p>Wallet: {application.wallet}</p>
+                <p>{application.description}</p>
+                <div className="application-actions">
+                  <label>
+                    Fee paid
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={approvalFeeById[application.id] ?? String(overview?.config.ownerApprovalFee ?? 0)}
+                      onChange={(event) =>
+                        setApprovalFeeById((previous) => ({
+                          ...previous,
+                          [application.id]: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+                  <label>
+                    Review note
+                    <textarea
+                      rows={3}
+                      placeholder="Optional reason for rejection"
+                      value={reviewNoteById[application.id] ?? ""}
+                      onChange={(event) =>
+                        setReviewNoteById((previous) => ({
+                          ...previous,
+                          [application.id]: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+                  <div className="wallet-actions">
+                    <button className="btn-primary" type="button" onClick={() => approveApplication(application.id)}>Approve + Charge Fee</button>
+                    <button className="btn-secondary" type="button" onClick={() => rejectApplication(application.id)}>Reject</button>
+                  </div>
+                </div>
+              </article>
             ))}
           </div>
         ) : (

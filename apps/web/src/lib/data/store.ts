@@ -27,6 +27,7 @@ export type OwnerApplication = {
   status: "pending" | "approved" | "rejected";
   createdAtUnix: number;
   reviewedAtUnix: number | null;
+  reviewNote: string | null;
 };
 
 type PlatformLedger = {
@@ -123,6 +124,10 @@ function readStore(): PlatformState {
   if (!Array.isArray(parsed.ownerApplications)) {
     parsed.ownerApplications = [];
   }
+  parsed.ownerApplications = parsed.ownerApplications.map((application) => ({
+    ...application,
+    reviewNote: typeof application.reviewNote === "string" ? application.reviewNote : null,
+  }));
   if (!Array.isArray(parsed.assets)) {
     parsed.assets = [];
   }
@@ -366,6 +371,7 @@ export function submitOwnerApplication(input: { wallet: string; description: str
     status: "pending",
     createdAtUnix: nowUnix(),
     reviewedAtUnix: null,
+    reviewNote: null,
   };
 
   state.ownerApplications.push(application);
@@ -392,6 +398,7 @@ export function approveOwnerApplication(input: { applicationId: string; feePaid:
 
   application.status = "approved";
   application.reviewedAtUnix = nowUnix();
+  application.reviewNote = null;
 
   if (!state.approvedOwners.some((wallet) => wallet.toLowerCase() === application.wallet.toLowerCase())) {
     state.approvedOwners.push(application.wallet);
@@ -405,6 +412,32 @@ export function approveOwnerApplication(input: { applicationId: string; feePaid:
     applicationId: application.id,
     wallet: application.wallet,
     feePaid: input.feePaid,
+  });
+
+  return application;
+}
+
+export function rejectOwnerApplication(input: { applicationId: string; reviewNote?: string }): OwnerApplication {
+  const state = readStore();
+  const application = state.ownerApplications.find((entry) => entry.id === input.applicationId);
+  if (!application) {
+    throw new Error("owner_application_not_found");
+  }
+  if (application.status !== "pending") {
+    throw new Error("owner_application_not_pending");
+  }
+
+  const reviewNote = String(input.reviewNote ?? "").trim();
+  application.status = "rejected";
+  application.reviewedAtUnix = nowUnix();
+  application.reviewNote = reviewNote || null;
+
+  writeStore(state);
+
+  appendEvent("owner_application_rejected", {
+    applicationId: application.id,
+    wallet: application.wallet,
+    reviewNote: application.reviewNote,
   });
 
   return application;
