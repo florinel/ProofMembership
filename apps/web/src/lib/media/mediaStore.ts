@@ -59,6 +59,8 @@ function mapExt(mimeType: string): string {
 }
 
 function validateImageFile(file: File): void {
+  // Keep validation conservative because uploaded images are later rendered
+  // directly in app surfaces and metadata previews.
   if (!file.type.startsWith("image/")) {
     throw new Error("invalid_media_type");
   }
@@ -81,6 +83,7 @@ const localMediaStorageProvider: MediaStorageProvider = {
 
     const bytes = Buffer.from(await file.arrayBuffer());
     fs.writeFileSync(fullPath, bytes);
+    // Sidecar metadata keeps read-time lookup cheap without scanning files.
     fs.writeFileSync(
       metaPath,
       JSON.stringify({ fileName, mimeType: file.type }, null, 2),
@@ -129,6 +132,8 @@ const arweaveMediaStorageProvider: MediaStorageProvider = {
       throw new Error("arweave_upload_failed");
     }
 
+    // Accept multiple response field names so integrations can use different
+    // uploader gateways without forcing one rigid response contract.
     const permanentUri = String(parsed?.permanentUri ?? parsed?.url ?? parsed?.mediaUri ?? "").trim();
     if (!permanentUri) {
       throw new Error("arweave_upload_missing_url");
@@ -146,6 +151,8 @@ const arweaveMediaStorageProvider: MediaStorageProvider = {
 };
 
 function resolveMediaStorageProvider(): MediaStorageProvider {
+  // Provider switch is runtime-configurable to keep local dev simple and
+  // production migration to permanent storage incremental.
   const provider = (process.env.PROOFMEMBERSHIP_MEDIA_PROVIDER ?? "local").toLowerCase();
   if (provider === "arweave") {
     return arweaveMediaStorageProvider;

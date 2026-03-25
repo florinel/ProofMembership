@@ -18,10 +18,9 @@ Use this checklist when validating the main admin -> owner -> storefront flow.
    - set campaign fee BPS
    - confirm admin overview shows initialized config
 
-2. Create a club from `/admin`.
-   - provide slug, owner wallet, metadata URI, and fee paid
-   - confirm the club appears in the admin table
-   - open `/admin/clubs/[clubId]`
+2. Create a club from `/owner`.
+   - provide owner wallet, slug, metadata URI, and fee paid
+   - confirm the club appears in owner and admin tables
 
 3. Create a campaign from `/owner/campaigns/new`.
    - use an owner wallet that matches the club

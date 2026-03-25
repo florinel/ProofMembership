@@ -47,6 +47,8 @@ function assertWallet(wallet: string): void {
 }
 
 function buildChallengeMessage(wallet: string, nonce: string): string {
+  // Message format intentionally mirrors SIWS-style fields so wallet prompts
+  // remain understandable while still binding nonce/domain/chain metadata.
   const domain = process.env.PROOFMEMBERSHIP_AUTH_DOMAIN ?? "localhost";
   const uri = process.env.PROOFMEMBERSHIP_AUTH_URI ?? "http://localhost:3000";
   const chain = process.env.PROOFMEMBERSHIP_CHAIN_ID ?? "solana:devnet";
@@ -94,6 +96,7 @@ export function verifyWalletSignature(input: {
     throw new Error("challenge_not_found");
   }
 
+  // One-time nonce usage prevents replay even if a signed message leaks.
   challengeStore().delete(input.nonce);
 
   if (challenge.expiresAtUnix < nowUnix()) {

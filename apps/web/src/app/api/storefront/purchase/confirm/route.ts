@@ -19,12 +19,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Projection only happens after strict RPC-backed verification succeeds.
     await verifyOnchainPurchaseTx({
       campaignId,
       buyerWallet,
       txSignature,
     });
 
+    // Persist as a read-model event so UI can reflect successful onchain
+    // purchases immediately, before a full indexer ingestion pipeline exists.
     const projection = projectOnchainMembershipPurchase({
       campaignId,
       buyerWallet,

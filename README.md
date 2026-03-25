@@ -66,6 +66,11 @@ pnpm test:web:unit
 pnpm test:backend:unit
 ```
 
+Backend automation scope:
+
+- Rust unit tests are the current automated backend coverage.
+- `tests/integration/*.md` are manual scenario checklists.
+
 Start and stop the full local stack:
 
 ```bash

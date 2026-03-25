@@ -61,6 +61,8 @@ type PurchaseResult = {
   ownerReceivesAtomic: string;
 };
 
+// Resolve storage root from either repo root or nested workspace execution contexts
+// so API routes and tests write to the same local projection files.
 function resolveRepoRoot(): string {
   const cwd = process.cwd();
   if (fs.existsSync(path.join(cwd, "pnpm-workspace.yaml"))) {
@@ -118,6 +120,8 @@ function readStore(): PlatformState {
   ensureStorage();
   const text = fs.readFileSync(MODEL_FILE, "utf8");
   const parsed = JSON.parse(text) as PlatformState;
+  // Keep backwards compatibility with older read-model snapshots by normalizing
+  // optional fields that were added after initial local schema versions.
   if (!Array.isArray(parsed.approvedOwners)) {
     parsed.approvedOwners = [];
   }
@@ -217,6 +221,8 @@ function calculatePlatformAndOwnerSplit(input: {
     throw new Error("invalid_min_campaign_fee");
   }
 
+  // Apply the same fee semantics as the program: BPS with a minimum floor,
+  // capped at total paid amount so owner never receives a negative value.
   const bpsFee = (paidAmount * input.feeBps) / 10_000;
   const platformFee = Math.min(paidAmount, Math.max(minFee, bpsFee));
   const ownerReceives = Math.max(0, paidAmount - platformFee);
@@ -279,6 +285,8 @@ function mintMembershipAsset(input: {
 }
 
 function assertCampaignPurchasable(campaign: Campaign): void {
+  // Keep purchase guards centralized so local and onchain projection paths
+  // share identical sold-out / expiry / mint-window behavior.
   if (campaign.status !== "active") {
     throw new Error("campaign_not_active");
   }
@@ -572,6 +580,8 @@ export function createClub(input: {
     throw new Error("slug_already_exists");
   }
 
+  // Club-level fee policy is snapshotted from platform defaults at creation time.
+  // Future platform config changes do not silently mutate existing clubs.
   const club: Club = {
     id: createId("club"),
     slug: input.slug,
@@ -635,6 +645,7 @@ export function createCampaign(input: {
     throw new Error("invalid_price");
   }
 
+  // Campaign write model remains SOL-only in the current implementation.
   const campaign: Campaign = {
     id: createId("camp"),
     clubId: input.clubId,
@@ -690,6 +701,8 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
   state.ledger.incomingDeposits += split.paidAmount;
   state.ledger.platformBalance += split.platformFee;
 
+  // Local mode mints a synthetic asset record immediately and tracks fee split
+  // in the read model without requiring an RPC round-trip.
   const membership: Membership = {
     id: createId("mship"),
     campaignId: campaign.id,
@@ -757,6 +770,7 @@ export function projectOnchainMembershipPurchase(input: {
   }
   assertCampaignPurchasable(campaign);
 
+  // Idempotency guard: do not project the same confirmed transaction twice.
   if (state.memberships.some((membership) => membership.mintTxSignature === txSignature)) {
     throw new Error("tx_signature_already_projected");
   }
@@ -773,6 +787,8 @@ export function projectOnchainMembershipPurchase(input: {
 
   campaign.mintedSupply += 1;
 
+  // The local read model does not index onchain mint accounts yet, so we keep
+  // a deterministic synthetic mint marker tied to the confirmed signature.
   const syntheticMint = `onchain-${txSignature.slice(0, 24)}`;
   const membership: Membership = {
     id: createId("mship"),

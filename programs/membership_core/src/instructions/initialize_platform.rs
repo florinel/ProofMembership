@@ -30,6 +30,7 @@ pub struct InitializePlatform<'info> {
 pub fn handler(ctx: Context<InitializePlatform>, params: InitializePlatformParams) -> Result<()> {
     validate_campaign_fee_bps(params.default_campaign_fee_bps)?;
 
+    // Platform config is singleton PDA and source of default fee policy.
     let account = &mut ctx.accounts.platform_config;
     account.authority = ctx.accounts.authority.key();
     account.treasury = ctx.accounts.treasury.key();

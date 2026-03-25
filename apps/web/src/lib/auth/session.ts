@@ -29,6 +29,7 @@ function isWalletChallengeResponse(
 }
 
 export async function createWalletChallenge(wallet: string): Promise<WalletChallengeResponse> {
+  // Server returns challenge payload that must be signed by the same wallet.
   const response = await fetch("/api/auth/challenge", {
     method: "POST",
     headers: {
@@ -51,6 +52,7 @@ export async function verifyWalletSession(payload: {
   message: string;
   signature: string;
 }): Promise<{ wallet: string; role: "public" | "member" | "owner" | "admin" }> {
+  // Verification endpoint both validates signature and sets session cookie.
   const response = await fetch("/api/auth/verify", {
     method: "POST",
     headers: {
@@ -79,6 +81,7 @@ export async function verifyWalletSession(payload: {
 }
 
 export async function clearWalletSession(): Promise<void> {
+  // Logout is best-effort for UI callers; endpoint clears cookie server-side.
   await fetch("/api/auth/logout", {
     method: "POST",
   });

@@ -70,6 +70,7 @@ pub fn handler(ctx: Context<PurchaseMembership>) -> Result<()> {
         MembershipError::InvalidTreasury
     );
 
+    // Reject non-purchasable lifecycle states before moving funds.
     validate_campaign_purchase_state(campaign, clock.unix_timestamp)?;
 
     let (platform_fee, owner_amount) =
@@ -105,6 +106,7 @@ pub fn handler(ctx: Context<PurchaseMembership>) -> Result<()> {
         )?;
     }
 
+    // Mint one NFT receipt to buyer ATA using platform PDA as mint authority.
     let signer_seeds: &[&[&[u8]]] = &[&[b"platform", &[platform_config.bump]]];
     token::mint_to(
         CpiContext::new_with_signer(
@@ -119,6 +121,8 @@ pub fn handler(ctx: Context<PurchaseMembership>) -> Result<()> {
         1,
     )?;
 
+    // Use saturating add as a last-resort overflow guard in addition to
+    // max-supply checks performed in purchase-state validation.
     campaign.minted_supply = campaign.minted_supply.saturating_add(1);
 
     let membership = &mut ctx.accounts.membership;

@@ -40,6 +40,7 @@ pub fn handler(ctx: Context<CreateClub>, params: CreateClubParams) -> Result<()>
         MembershipError::InvalidTreasury
     );
 
+    // Charge platform onboarding fee for club creation.
     let fee = ctx.accounts.platform_config.club_creation_fee_lamports;
     if fee > 0 {
         invoke(
@@ -60,6 +61,8 @@ pub fn handler(ctx: Context<CreateClub>, params: CreateClubParams) -> Result<()>
     club.owner = ctx.accounts.club_owner.key();
     club.slug = params.slug.clone();
     club.metadata_uri = params.metadata_uri;
+    // Snapshot defaults onto the club so later platform changes do not
+    // retroactively alter existing club economics.
     club.campaign_fee_bps = ctx.accounts.platform_config.default_campaign_fee_bps;
     club.min_campaign_fee_lamports = ctx.accounts.platform_config.default_min_campaign_fee_lamports;
     club.campaign_count = 0;

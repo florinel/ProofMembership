@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+/// Global platform config PDA that stores authority, treasury, and default fees.
 #[account]
 pub struct PlatformConfig {
     pub authority: Pubkey,
@@ -12,9 +13,11 @@ pub struct PlatformConfig {
 }
 
 impl PlatformConfig {
+    // Sum of all serialized fields, excluding Anchor discriminator.
     pub const INIT_SPACE: usize = 32 + 32 + 8 + 8 + 2 + 8 + 1;
 }
 
+/// Club account controlled by an approved owner wallet.
 #[account]
 pub struct Club {
     pub owner: Pubkey,
@@ -29,9 +32,11 @@ pub struct Club {
 impl Club {
     pub const MAX_SLUG_LEN: usize = 48;
     pub const MAX_URI_LEN: usize = 200;
+    // Sum of all serialized fields, excluding Anchor discriminator.
     pub const INIT_SPACE: usize = 32 + 4 + Self::MAX_SLUG_LEN + 4 + Self::MAX_URI_LEN + 2 + 8 + 4 + 1;
 }
 
+/// Campaign lifecycle status used by purchase validation.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq)]
 pub enum CampaignStatus {
     Active,
@@ -39,6 +44,7 @@ pub enum CampaignStatus {
     Closed,
 }
 
+/// Campaign account storing price and supply lifecycle data.
 #[account]
 pub struct Campaign {
     pub club: Pubkey,
@@ -54,9 +60,11 @@ pub struct Campaign {
 
 impl Campaign {
     pub const MAX_NAME_LEN: usize = 64;
+    // Sum of all serialized fields, excluding Anchor discriminator.
     pub const INIT_SPACE: usize = 32 + 32 + 4 + Self::MAX_NAME_LEN + 8 + 5 + 4 + 9 + 1 + 1;
 }
 
+/// Membership receipt account keyed by campaign, buyer, and minted NFT.
 #[account]
 pub struct Membership {
     pub owner: Pubkey,
@@ -69,5 +77,6 @@ pub struct Membership {
 }
 
 impl Membership {
+    // Sum of all serialized fields, excluding Anchor discriminator.
     pub const INIT_SPACE: usize = 32 + 32 + 32 + 8 + 9 + 1 + 1;
 }

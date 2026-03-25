@@ -19,6 +19,8 @@ export async function POST(request: NextRequest) {
   try {
     const mode = (process.env.PROOFMEMBERSHIP_PURCHASE_MODE ?? "local").toLowerCase();
     if (mode === "onchain") {
+      // Onchain mode returns an intent for wallet signing; projection happens
+      // only after `/api/storefront/purchase/confirm` verifies the tx.
       const result = await purchaseMembershipOnchain({
         campaignId,
         buyerWallet,
@@ -26,6 +28,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, mode: "onchain", ...result }, { status: 202 });
     }
 
+    // Local mode applies synthetic purchase + projection immediately.
     const result = purchaseMembership({
       campaignId,
       buyerWallet,

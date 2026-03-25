@@ -30,6 +30,7 @@ declare_id!("3Ne2f2pLbgpsWL3v9xCDy6VjKmoqHjbBtEJL3a6tMuCs");
 pub mod membership_core {
     use super::*;
 
+    /// Initializes platform-level fee config and treasury authority.
     pub fn initialize_platform(
         ctx: Context<InitializePlatform>,
         params: InitializePlatformParams,
@@ -37,6 +38,7 @@ pub mod membership_core {
         instructions::initialize_platform::handler(ctx, params)
     }
 
+    /// Creates a club account and charges the configured club creation fee.
     pub fn create_club(
         ctx: Context<CreateClub>,
         params: CreateClubParams,
@@ -44,6 +46,7 @@ pub mod membership_core {
         instructions::create_club::handler(ctx, params)
     }
 
+    /// Creates a campaign under an existing club and charges campaign creation fee.
     pub fn create_campaign(
         ctx: Context<CreateCampaign>,
         params: CreateCampaignParams,
@@ -51,10 +54,12 @@ pub mod membership_core {
         instructions::create_campaign::handler(ctx, params)
     }
 
+    /// Purchases membership, routes SOL fees, and mints one NFT receipt.
     pub fn purchase_membership(ctx: Context<PurchaseMembership>) -> Result<()> {
         instructions::purchase_membership::handler(ctx)
     }
 
+    /// Updates per-club fee policy using platform authority permissions.
     pub fn set_club_fee_policy(
         ctx: Context<SetClubFeePolicy>,
         params: SetClubFeePolicyParams,

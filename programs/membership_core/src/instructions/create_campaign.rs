@@ -48,6 +48,7 @@ pub fn handler(ctx: Context<CreateCampaign>, params: CreateCampaignParams) -> Re
     );
     require_keys_eq!(club.owner, ctx.accounts.club_owner.key(), MembershipError::OwnerMismatch);
 
+    // Campaign creation fee is paid to platform treasury before account init state write.
     let fee = ctx.accounts.platform_config.campaign_creation_fee_lamports;
     if fee > 0 {
         invoke(
@@ -71,6 +72,7 @@ pub fn handler(ctx: Context<CreateCampaign>, params: CreateCampaignParams) -> Re
     campaign.max_supply = params.max_supply;
     campaign.minted_supply = 0;
     campaign.expires_at_unix = params.expires_at_unix;
+    // Campaign starts active; pause/close controls are a future extension.
     campaign.status = CampaignStatus::Active;
     campaign.bump = ctx.bumps.campaign;
 

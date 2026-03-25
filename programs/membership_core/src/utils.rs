@@ -12,6 +12,7 @@ pub fn validate_campaign_fee_bps(fee_bps: u16) -> Result<()> {
 }
 
 pub fn validate_campaign_purchase_state(campaign: &Campaign, now_unix: i64) -> Result<()> {
+    // Keep order stable so callers get deterministic error precedence.
     if campaign.status != CampaignStatus::Active {
         return err!(MembershipError::CampaignNotActive);
     }

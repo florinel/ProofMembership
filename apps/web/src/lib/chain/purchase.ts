@@ -62,6 +62,8 @@ async function loadCampaignPointersFromChain(input: {
   campaignOnchainAddress: string;
   programId: string;
 }): Promise<{ clubOnchainAddress: string; ownerTreasury: string }> {
+  // Decode only the fields needed for strict client preflight. We intentionally
+  // avoid duplicating full account decoding logic here.
   const connection = new Connection(input.rpcUrl, "confirmed");
   const campaignPubkey = new PublicKey(input.campaignOnchainAddress);
   const accountInfo = await connection.getAccountInfo(campaignPubkey, "confirmed");
@@ -130,6 +132,8 @@ async function preflightOnchainPurchase(input: OnchainPurchaseInput): Promise<{
   platformConfigPda: string;
   platformTreasury: string;
 }> {
+  // Gather all values required by both intent creation and tx verification so
+  // both phases enforce identical environment and campaign assumptions.
   assertValidWalletAddress(input.buyerWallet);
   const campaignOnchainAddress = getCampaignOnchainAddress(input.campaignId);
   const rpcUrl = getRequiredEnv("PROOFMEMBERSHIP_RPC_URL");
@@ -213,6 +217,7 @@ export async function verifyOnchainPurchaseTx(input: {
     throw new Error("onchain_tx_missing_buyer_signer");
   }
 
+  // The first accounts must match our expected Anchor account ordering.
   const expectedPrefix = [
     input.buyerWallet,
     preflight.platformConfigPda,
@@ -263,6 +268,8 @@ export async function verifyOnchainPurchaseTx(input: {
     throw new Error("onchain_purchase_instruction_not_found");
   }
 
+  // Require writable access on all mutable business accounts to prevent false
+  // positives from lookalike instructions with read-only account metas.
   const accountKeyMeta = parsed.transaction.message.accountKeys;
   const isWritable = (address: string): boolean => {
     const entry = accountKeyMeta.find((key) => key.pubkey.toBase58() === address);
@@ -300,6 +307,8 @@ export async function verifyOnchainPurchaseTx(input: {
     throw new Error("onchain_tx_missing_balances");
   }
 
+  // Validate paid amount from treasury balance deltas instead of trusting
+  // instruction data, which keeps verification resilient to malformed payloads.
   const platformDelta = postBalances[platformIndex] - preBalances[platformIndex];
   const ownerDelta = postBalances[ownerIndex] - preBalances[ownerIndex];
   if (platformDelta < 0 || ownerDelta < 0) {

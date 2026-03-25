@@ -2,6 +2,7 @@ import type { AppRole } from "@/lib/auth/roles";
 import { isApprovedOwner, listMembershipsByWallet } from "@/lib/data/store";
 
 function getAdminWalletSet(): Set<string> {
+  // Normalize once so role checks are case-insensitive across env formatting.
   const fromEnv = (process.env.PROOFMEMBERSHIP_ADMIN_WALLETS ?? "")
     .split(",")
     .map((wallet) => wallet.trim().toLowerCase())
@@ -10,6 +11,8 @@ function getAdminWalletSet(): Set<string> {
 }
 
 export function resolveRoleForWallet(wallet: string): AppRole {
+  // Role precedence is intentional: explicit admin allowlist, then owner status,
+  // then active membership holder, otherwise public.
   const normalized = wallet.trim().toLowerCase();
   if (!normalized) {
     return "public";

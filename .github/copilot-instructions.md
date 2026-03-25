@@ -10,8 +10,9 @@
 - Run a single web test file with `pnpm --filter @proofmembership/web test:unit -- src/lib/data/store.test.ts`, `pnpm --filter @proofmembership/web test:unit -- src/lib/chain/purchase.test.ts`, or `pnpm --filter @proofmembership/web test:unit -- src/components/owner/OwnerCampaignCreateClient.test.tsx`.
 - Run backend Rust tests with `pnpm test:backend:unit`.
 - Run a single Rust test with `cargo test --manifest-path programs/membership_core/Cargo.toml split_handles_typical_fee`.
-- Run Anchor integration tests from the repo root with `anchor test --provider.cluster localnet`.
 - Start the indexer scaffold with `pnpm --filter @proofmembership/indexer dev`.
+- Start devnet helper services with `pnpm util:start:devnet` and stop them with `pnpm util:stop:devnet`.
+- Deploy to devnet with `pnpm util:deploy:devnet`.
 - Start the full local stack with `pnpm util:clean-start:local` and stop/reset it with `pnpm util:stop-all:local`.
 
 ## High-level architecture
@@ -37,6 +38,7 @@
 - Membership purchases in the web layer currently create both a `Membership` record and a synthetic `MintedMembershipAsset` record. Preserve that pairing when changing storefront or metadata behavior.
 - Membership purchase projections (both local and on-chain-confirmed) should continue creating both a `Membership` record and a `MintedMembershipAsset` record, using `provenance` to distinguish `synthetic_local` vs `onchain`.
 - Keep on-chain confirmation strict: when changing `/api/storefront/purchase/confirm` or `src/lib/chain/purchase.ts`, preserve instruction discriminator checks, expected account ordering, writable-account checks, and payment amount validation from parsed transaction balances.
+- Backend automated coverage is currently Rust unit tests only; treat `tests/integration/*.md` as manual scenario checklists rather than executable Anchor integration tests.
 - Keep the Anchor program organized one instruction per file with a `Params` struct, an `Accounts` struct, and a `handler` function. `lib.rs` should remain a thin dispatcher.
 - Follow the existing PDA seed scheme: platform uses `b"platform"`, clubs use `b"club" + owner + slug`, campaigns use `b"campaign" + club + name`, and memberships use `b"membership" + campaign + buyer + nft_mint`.
 - Fee handling is centralized. Platform fee configuration lives in `PlatformConfig`, and purchase flows use the shared split calculation in `src/utils.rs`.

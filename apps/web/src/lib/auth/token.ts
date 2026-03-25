@@ -28,6 +28,7 @@ export function getSessionTtlSeconds(): number {
 }
 
 export async function issueSessionToken(claims: SessionClaims): Promise<string> {
+  // Keep session payload minimal: only identity and resolved role.
   return new SignJWT({ wallet: claims.wallet, role: claims.role })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuer(SESSION_ISSUER)
@@ -49,6 +50,8 @@ export async function verifySessionToken(token: string): Promise<SessionClaims |
       return null;
     }
 
+    // Reject unknown roles defensively so malformed or stale tokens degrade
+    // to anonymous access instead of expanding privilege.
     if (role !== "public" && role !== "member" && role !== "owner" && role !== "admin") {
       return null;
     }

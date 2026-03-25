@@ -23,6 +23,7 @@ pub struct SetClubFeePolicy<'info> {
 }
 
 pub fn handler(ctx: Context<SetClubFeePolicy>, params: SetClubFeePolicyParams) -> Result<()> {
+    // Only platform authority can rewrite club-level fee economics.
     require_keys_eq!(
         ctx.accounts.platform_config.authority,
         ctx.accounts.authority.key(),

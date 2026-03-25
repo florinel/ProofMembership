@@ -32,8 +32,8 @@ solana --version
 
 ```bash
 cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
-avm install latest
-avm use latest
+avm install 0.32.1
+avm use 0.32.1
 anchor --version
 ```
 
@@ -79,7 +79,7 @@ The local provider wallet defaults to the admin key in `Anchor.toml`.
 From the repo root:
 
 ```bash
-cd /home/flow/dev/proofmembership
+cd /home/flow/dev/solnft
 pnpm install
 ```
 
@@ -189,7 +189,7 @@ Open `http://localhost:3000`.
 
 1. Use `/dev` to set the admin role for local UI gating, or use wallet-auth endpoints to establish a signed session.
 2. Open `/admin`.
-3. Initialize the platform with owner approval fee, club fee, campaign fee, and campaign fee BPS.
+3. Initialize the platform with owner approval fee, club creation fee, campaign creation fee, default campaign fee BPS, and default minimum campaign fee.
 4. Review a pending owner application.
 5. Approve with onboarding fee collection, or reject with review notes.
 

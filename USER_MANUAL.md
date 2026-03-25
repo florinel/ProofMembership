@@ -132,9 +132,11 @@ Use `POST /api/auth/logout` to clear the signed session.
 1. Set the role to admin from `/dev` if you are in local development mode.
 2. Open `/admin`.
 3. In `Initialize Platform`, enter:
+   - owner approval fee
    - club creation fee
    - campaign creation fee
-   - campaign fee BPS
+   - default campaign fee BPS
+   - default minimum campaign fee
 4. Submit the form.
 5. Click `Refresh Overview` to confirm the config is stored.
 
@@ -148,17 +150,17 @@ Use `POST /api/auth/logout` to clear the signed session.
 
 1. Open `/owner`.
 2. In `Apply for Club Ownership`, enter:
-  - wallet
-  - club description
-4. Submit the application and copy the returned application ID.
-5. Ask admin to review and approve the application.
-6. In `Create Club`, enter:
-  - approved owner wallet
-  - club slug
-  - metadata URI
-  - fee paid
-7. Submit the form.
-8. Confirm the club appears in owner and admin views.
+   - wallet
+   - club description
+3. Submit the application and copy the returned application ID.
+4. Ask admin to review and approve the application.
+5. In `Create Club`, enter:
+   - approved owner wallet
+   - club slug
+   - metadata URI
+   - fee paid
+6. Submit the form.
+7. Confirm the club appears in owner and admin views.
 
 ### Step D: create a campaign as owner
 
@@ -168,7 +170,7 @@ Use `POST /api/auth/logout` to clear the signed session.
 4. Set:
    - campaign name
    - price
-  - payment token (`SOL`)
+    - payment token (`SOL`)
    - mint mode (`on_purchase` or `live_event`)
    - optional live mint start timestamp
    - template image URI or upload a template image
