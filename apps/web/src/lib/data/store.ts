@@ -25,6 +25,14 @@ export type OwnerApplication = {
   wallet: string;
   description: string;
   status: "pending" | "approved" | "rejected";
+  settlementStatus: "pending_settlement" | "settled_to_admin" | "returned_to_applicant";
+  settlementAmountAtomic: string;
+  /** Tx where the applicant deposited SOL into the on-chain escrow PDA. Null until escrow integration lands. */
+  submitEscrowTxSignature: string | null;
+  /** Tx where admin settled the escrow to the platform treasury on approval. Null until escrow integration lands. */
+  approvalSettlementTxSignature: string | null;
+  /** Tx where admin returned the escrow to the applicant on rejection. Null until escrow integration lands. */
+  refundSettlementTxSignature: string | null;
   createdAtUnix: number;
   reviewedAtUnix: number | null;
   reviewNote: string | null;
@@ -131,6 +139,40 @@ function readStore(): PlatformState {
   parsed.ownerApplications = parsed.ownerApplications.map((application) => ({
     ...application,
     reviewNote: typeof application.reviewNote === "string" ? application.reviewNote : null,
+    settlementStatus:
+      application.settlementStatus === "settled_to_admin"
+        ? "settled_to_admin"
+        : application.settlementStatus === "returned_to_applicant"
+          ? "returned_to_applicant"
+          : application.status === "approved"
+            ? "settled_to_admin"
+            : application.status === "rejected"
+              ? "returned_to_applicant"
+              : "pending_settlement",
+    settlementAmountAtomic:
+      typeof application.settlementAmountAtomic === "string"
+        ? application.settlementAmountAtomic
+        : toFixedAtomic(parsed.config?.ownerApprovalFee ?? initialState.config.ownerApprovalFee),
+    // Migrate old single-field records: map the generic `settlementTxSignature` into the
+    // appropriate specific field, then set the others to null.
+    submitEscrowTxSignature:
+      typeof (application as Record<string, unknown>).submitEscrowTxSignature === "string"
+        ? String((application as Record<string, unknown>).submitEscrowTxSignature)
+        : null,
+    approvalSettlementTxSignature:
+      typeof (application as Record<string, unknown>).approvalSettlementTxSignature === "string"
+        ? String((application as Record<string, unknown>).approvalSettlementTxSignature)
+        : typeof (application as Record<string, unknown>).settlementTxSignature === "string" &&
+            application.status === "approved"
+          ? String((application as Record<string, unknown>).settlementTxSignature)
+          : null,
+    refundSettlementTxSignature:
+      typeof (application as Record<string, unknown>).refundSettlementTxSignature === "string"
+        ? String((application as Record<string, unknown>).refundSettlementTxSignature)
+        : typeof (application as Record<string, unknown>).settlementTxSignature === "string" &&
+            application.status === "rejected"
+          ? String((application as Record<string, unknown>).settlementTxSignature)
+          : null,
   }));
   if (!Array.isArray(parsed.assets)) {
     parsed.assets = [];
@@ -368,6 +410,19 @@ export function listOwnerApplications(status?: OwnerApplication["status"]): Owne
   return applications.filter((application) => application.status === status);
 }
 
+export function getLatestOwnerApplicationByWallet(wallet: string): OwnerApplication | null {
+  const normalized = wallet.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  const applications = readStore().ownerApplications
+    .filter((application) => application.wallet.toLowerCase() === normalized)
+    .sort((a, b) => b.createdAtUnix - a.createdAtUnix);
+
+  return applications[0] ?? null;
+}
+
 export function isApprovedOwner(wallet: string): boolean {
   const normalized = wallet.trim().toLowerCase();
   if (!normalized) {
@@ -408,6 +463,11 @@ export function submitOwnerApplication(input: { wallet: string; description: str
     wallet,
     description,
     status: "pending",
+    settlementStatus: "pending_settlement",
+    settlementAmountAtomic: toFixedAtomic(state.config.ownerApprovalFee),
+    submitEscrowTxSignature: null,
+    approvalSettlementTxSignature: null,
+    refundSettlementTxSignature: null,
     createdAtUnix: nowUnix(),
     reviewedAtUnix: null,
     reviewNote: null,
@@ -422,7 +482,7 @@ export function submitOwnerApplication(input: { wallet: string; description: str
   return application;
 }
 
-export function approveOwnerApplication(input: { applicationId: string; feePaid: number }): OwnerApplication {
+export function approveOwnerApplication(input: { applicationId: string; feePaid?: number }): OwnerApplication {
   const state = readStore();
   const application = state.ownerApplications.find((entry) => entry.id === input.applicationId);
   if (!application) {
@@ -431,11 +491,15 @@ export function approveOwnerApplication(input: { applicationId: string; feePaid:
   if (application.status !== "pending") {
     throw new Error("owner_application_not_pending");
   }
-  if (input.feePaid < state.config.ownerApprovalFee) {
-    throw new Error("insufficient_owner_approval_fee");
-  }
+
+  // Settlement amount is governed by platform policy. Manual per-application
+  // fee entry is removed to align with deterministic approval settlement flow.
+  const settledFee = state.config.ownerApprovalFee;
 
   application.status = "approved";
+  application.settlementStatus = "settled_to_admin";
+  application.settlementAmountAtomic = toFixedAtomic(settledFee);
+  application.approvalSettlementTxSignature = null;
   application.reviewedAtUnix = nowUnix();
   application.reviewNote = null;
 
@@ -443,14 +507,16 @@ export function approveOwnerApplication(input: { applicationId: string; feePaid:
     state.approvedOwners.push(application.wallet);
   }
 
-  state.ledger.incomingDeposits += input.feePaid;
-  state.ledger.platformBalance += input.feePaid;
+  state.ledger.incomingDeposits += settledFee;
+  state.ledger.platformBalance += settledFee;
   writeStore(state);
 
   appendEvent("owner_application_approved", {
     applicationId: application.id,
     wallet: application.wallet,
-    feePaid: input.feePaid,
+    feePaid: settledFee,
+    settlementStatus: application.settlementStatus,
+    settlementAmountAtomic: application.settlementAmountAtomic,
   });
 
   return application;
@@ -468,6 +534,9 @@ export function rejectOwnerApplication(input: { applicationId: string; reviewNot
 
   const reviewNote = String(input.reviewNote ?? "").trim();
   application.status = "rejected";
+  application.settlementStatus = "returned_to_applicant";
+  application.settlementAmountAtomic = toFixedAtomic(state.config.ownerApprovalFee);
+  application.refundSettlementTxSignature = null;
   application.reviewedAtUnix = nowUnix();
   application.reviewNote = reviewNote || null;
 
@@ -477,6 +546,8 @@ export function rejectOwnerApplication(input: { applicationId: string; reviewNot
     applicationId: application.id,
     wallet: application.wallet,
     reviewNote: application.reviewNote,
+    settlementStatus: application.settlementStatus,
+    settlementAmountAtomic: application.settlementAmountAtomic,
   });
 
   return application;

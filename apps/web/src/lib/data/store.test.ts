@@ -25,7 +25,6 @@ function approveOwner(wallet: string): void {
 
   approveOwnerApplication({
     applicationId: application.id,
-    feePaid: 0.5,
   });
 }
 
@@ -246,9 +245,34 @@ describe("store lifecycle", () => {
     const overview = getAdminOverview();
 
     expect(rejected.status).toBe("rejected");
+    expect(rejected.settlementStatus).toBe("returned_to_applicant");
+    expect(rejected.settlementAmountAtomic).toBe("0.500000");
     expect(rejected.reviewNote).toContain("supporting documents");
     expect(overview.pendingOwnerApplications).toBe(0);
     expect(overview.platformBalanceAtomic).toBe("0.000000");
+  });
+
+  it("applies deterministic settlement metadata on approval", () => {
+    initializePlatform({
+      ownerApprovalFee: 0.75,
+      clubCreationFee: 1,
+      campaignCreationFee: 0.5,
+      defaultCampaignFeeBps: 500,
+      defaultMinCampaignFeeAtomic: "0.0003",
+    });
+
+    const application = submitOwnerApplication({
+      wallet: "owner-wallet-settlement",
+      description: "Owner application",
+    });
+
+    const approved = approveOwnerApplication({
+      applicationId: application.id,
+    });
+
+    expect(approved.status).toBe("approved");
+    expect(approved.settlementStatus).toBe("settled_to_admin");
+    expect(approved.settlementAmountAtomic).toBe("0.750000");
   });
 
   it("blocks live mint purchase before start timestamp", () => {

@@ -25,10 +25,11 @@ export default async function OwnerPage() {
       <main className="container">
         <h1>Club Owner</h1>
         <div className="panel">
-          <p>Apply for owner approval below.</p>
-          <p>Admin will review your application, collect onboarding fees on approval, and then unlock owner access.</p>
+          <p>This route requires approved owner access.</p>
+          <p>
+            Submit an owner application at <Link href="/owner/apply">/owner/apply</Link> and sign in again after approval.
+          </p>
         </div>
-        <OwnerOnboardingClient initialWallet={connectedWallet ?? undefined} canCreateClub={false} />
       </main>
     );
   }
@@ -39,12 +40,16 @@ export default async function OwnerPage() {
         <h1>Club Owner</h1>
         <div className="panel">
           {connectedWallet ? (
-            <p>No clubs for connected wallet {connectedWallet}. Apply for ownership approval and create your first club below.</p>
+            <p>No clubs for connected wallet {connectedWallet}. Create your first club below.</p>
           ) : (
-            <p>No clubs yet. Apply for ownership approval and create your first club below.</p>
+            <p>No clubs yet. Create your first club below.</p>
           )}
         </div>
-        <OwnerOnboardingClient initialWallet={connectedWallet ?? undefined} />
+        <OwnerOnboardingClient
+          initialWallet={connectedWallet ?? undefined}
+          canCreateClub
+          showApplication={false}
+        />
       </main>
     );
   }
@@ -55,7 +60,11 @@ export default async function OwnerPage() {
       {connectedWallet ? <p className="kicker">Connected wallet: {connectedWallet}</p> : null}
       <p className="kicker">Manage your clubs below. Expand each club to manage campaigns under it.</p>
       <p className="kicker">You can create additional clubs after approval by paying the club creation fee.</p>
-      <OwnerOnboardingClient initialWallet={connectedWallet ?? undefined} />
+      <OwnerOnboardingClient
+        initialWallet={connectedWallet ?? undefined}
+        canCreateClub
+        showApplication={false}
+      />
       <div className="panel">
         <h3>Club Manager</h3>
         <div className="accordion-list">

@@ -1,6 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { submitOwnerApplication } from "@/lib/data/store";
+import {
+  getLatestOwnerApplicationByWallet,
+  isApprovedOwner,
+  submitOwnerApplication,
+} from "@/lib/data/store";
+
+export async function GET(request: NextRequest) {
+  const wallet = request.nextUrl.searchParams.get("wallet")?.trim() ?? "";
+  if (!wallet) {
+    return NextResponse.json({ error: "wallet_required" }, { status: 400 });
+  }
+
+  const application = getLatestOwnerApplicationByWallet(wallet);
+  const approvedOwner = isApprovedOwner(wallet);
+
+  return NextResponse.json(
+    {
+      ok: true,
+      wallet,
+      approvedOwner,
+      application,
+    },
+    { status: 200 }
+  );
+}
 
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as {

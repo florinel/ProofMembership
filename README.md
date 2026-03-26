@@ -91,7 +91,8 @@ pnpm util:stop:devnet
 ## Key routes
 
 - /admin: platform setup, owner application review (approve with fee charge or reject), fee policy controls
-- /owner: public owner application plus owner management after approval
+- /owner/apply: public owner onboarding form for wallet-based applications
+- /owner: owner-only dashboard for approved owners
 - /owner/campaigns/new: campaign creation flow for approved owners
 - /storefront: member purchase flow
 

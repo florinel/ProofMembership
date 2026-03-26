@@ -213,17 +213,18 @@ Open `http://localhost:3000`.
 2. Open `/admin`.
 3. Initialize the platform with owner approval fee, club creation fee, campaign creation fee, default campaign fee BPS, and default minimum campaign fee.
 4. Review a pending owner application.
-5. Approve with onboarding fee collection, or reject with review notes.
+5. Approve to settle onboarding fee using platform policy, or reject with review notes.
 
 ### Owner flow
 
-1. Open `/owner` and submit an ownership application with wallet + description.
-2. Ask admin to approve the application.
-3. After approval, access owner-only management and create a club.
-4. Open `/owner/campaigns/new`.
-5. Upload a template image or provide a template URI.
-6. Create one or more SOL campaigns.
-7. Optionally create a `live_event` campaign to verify mint-start gating.
+1. Open `/owner/apply` and submit an ownership application with wallet + description.
+2. Use `Check Status` on onboarding to monitor pending/approved/rejected state and settlement status.
+3. Ask admin to approve the application.
+4. After approval, sign in again and access owner-only management at `/owner` to create a club.
+5. Open `/owner/campaigns/new`.
+6. Upload a template image or provide a template URI.
+7. Create one or more SOL campaigns.
+8. Optionally create a `live_event` campaign to verify mint-start gating.
 
 ### Storefront flow
 
@@ -269,7 +270,8 @@ For SOL purchases, verify platform and owner balances update according to config
 Run these intentionally:
 
 - visit `/admin` without admin role and confirm the route is blocked
-- visit `/owner` without owner role and confirm owner application is still available
+- visit `/owner` without owner role and confirm access is blocked
+- visit `/owner/apply` without owner role and confirm onboarding is available
 - call `/api/admin/*` without the required role and confirm `403`
 - call `/api/owner/*` (except `/api/owner-applications`) without owner role and confirm `403`
 - submit campaign creation without a template image and confirm `template_image_required`

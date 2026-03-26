@@ -26,6 +26,11 @@ type OwnerApplicationResponse = {
   wallet: string;
   description: string;
   status: "pending" | "approved" | "rejected";
+  settlementStatus?: "pending_settlement" | "settled_to_admin" | "returned_to_applicant";
+  settlementAmountAtomic?: string;
+  submitEscrowTxSignature?: string | null;
+  approvalSettlementTxSignature?: string | null;
+  refundSettlementTxSignature?: string | null;
   reviewedAtUnix?: number | null;
   reviewNote?: string | null;
 };
@@ -34,7 +39,6 @@ export default function AdminFlowClient() {
   const [status, setStatus] = useState("Ready");
   const [overview, setOverview] = useState<AdminOverviewResponse | null>(null);
   const [pendingApplications, setPendingApplications] = useState<OwnerApplicationResponse[]>([]);
-  const [approvalFeeById, setApprovalFeeById] = useState<Record<string, string>>({});
   const [reviewNoteById, setReviewNoteById] = useState<Record<string, string>>({});
 
   async function refreshOverview() {
@@ -50,12 +54,6 @@ export default function AdminFlowClient() {
 
     setOverview(overviewData);
     setPendingApplications(applicationsData.pending ?? []);
-
-    const nextFeeState: Record<string, string> = {};
-    for (const application of applicationsData.pending ?? []) {
-      nextFeeState[application.id] = String(overviewData.config.ownerApprovalFee);
-    }
-    setApprovalFeeById(nextFeeState);
   }
 
   async function initializePlatform(event: FormEvent<HTMLFormElement>) {
@@ -142,7 +140,6 @@ export default function AdminFlowClient() {
   }
 
   async function approveApplication(applicationId: string) {
-    const feePaid = Number(approvalFeeById[applicationId] ?? overview?.config.ownerApprovalFee ?? 0);
     if (!applicationId) {
       setStatus("Application ID is required.");
       return;
@@ -152,10 +149,6 @@ export default function AdminFlowClient() {
 
     const response = await fetch(`/api/admin/owner-applications/${encodeURIComponent(applicationId)}/approve`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        feePaid,
-      }),
     });
 
     const result = (await response.json()) as { error?: string };
@@ -247,7 +240,7 @@ export default function AdminFlowClient() {
       <div className="admin-flow-column">
         <section className="panel">
         <h3>Review Owner Applications</h3>
-        <p>Approve to charge onboarding fees and unlock owner role, or reject with review notes.</p>
+        <p>Approve to settle onboarding fee using platform policy and unlock owner role, or reject with review notes.</p>
         {pendingApplications.length ? (
           <div className="stack-sm application-list">
             {pendingApplications.map((application) => (
@@ -255,22 +248,10 @@ export default function AdminFlowClient() {
                 <p><strong>{application.id}</strong></p>
                 <p>Wallet: {application.wallet}</p>
                 <p>{application.description}</p>
+                {application.settlementStatus ? (
+                  <p>Settlement: {application.settlementStatus} ({application.settlementAmountAtomic ?? "0.000000"} SOL)</p>
+                ) : null}
                 <div className="application-actions">
-                  <label>
-                    Fee paid
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={approvalFeeById[application.id] ?? String(overview?.config.ownerApprovalFee ?? 0)}
-                      onChange={(event) =>
-                        setApprovalFeeById((previous) => ({
-                          ...previous,
-                          [application.id]: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
                   <label>
                     Review note
                     <textarea
@@ -286,7 +267,7 @@ export default function AdminFlowClient() {
                     />
                   </label>
                   <div className="wallet-actions">
-                    <button className="btn-primary" type="button" onClick={() => approveApplication(application.id)}>Approve + Charge Fee</button>
+                    <button className="btn-primary" type="button" onClick={() => approveApplication(application.id)}>Approve + Settle</button>
                     <button className="btn-secondary" type="button" onClick={() => rejectApplication(application.id)}>Reject</button>
                   </div>
                 </div>

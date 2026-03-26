@@ -42,7 +42,7 @@ function forbidden(pathname: string, message: string): NextResponse {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   let role = getRole(request);
-  const isPublicOwnerApplicationRoute = pathname === "/owner" || pathname === "/api/owner-applications";
+  const isPublicOwnerApplicationRoute = pathname === "/owner/apply" || pathname.startsWith("/api/owner-applications");
 
   const sessionToken = request.cookies.get(getSessionCookieName())?.value;
   if (sessionToken) {

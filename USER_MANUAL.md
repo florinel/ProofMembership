@@ -21,6 +21,7 @@ Primary route: `/admin`
 
 Primary routes:
 
+- `/owner/apply`
 - `/owner`
 - `/owner/campaigns/new`
 
@@ -43,7 +44,7 @@ Primary route: `/dev`
 ### Web prerequisites
 
 - Node 20+
-- pnpm 9+
+- pnpm 10+
 
 Install dependencies from the repository root:
 
@@ -144,23 +145,26 @@ Use `POST /api/auth/logout` to clear the signed session.
 
 1. Stay on `/admin`.
 2. In `Review Owner Applications`, inspect the pending application.
-3. Approve to collect the onboarding fee and unlock owner role, or reject with an optional review note.
+3. Approve to settle the onboarding fee using platform policy and unlock owner role, or reject with an optional review note.
 
 ### Step C: apply and create a club as owner
 
-1. Open `/owner`.
+1. Open `/owner/apply`.
 2. In `Apply for Club Ownership`, enter:
    - wallet
    - club description
 3. Submit the application and copy the returned application ID.
-4. Ask admin to review and approve the application.
-5. In `Create Club`, enter:
+4. Use `Check Status` on the onboarding screen to monitor pending/approved/rejected state and settlement status for the wallet.
+5. Ask admin to review and approve the application.
+6. Sign in again with the approved wallet.
+7. Open `/owner`.
+8. In `Create Club`, enter:
    - approved owner wallet
    - club slug
    - metadata URI
    - fee paid
-6. Submit the form.
-7. Confirm the club appears in owner and admin views.
+9. Submit the form.
+10. Confirm the club appears in owner and admin views.
 
 ### Step D: create a campaign as owner
 
@@ -170,7 +174,7 @@ Use `POST /api/auth/logout` to clear the signed session.
 4. Set:
    - campaign name
    - price
-    - payment token (`SOL`)
+  - payment token (`SOL`)
    - mint mode (`on_purchase` or `live_event`)
    - optional live mint start timestamp
    - template image URI or upload a template image
@@ -239,7 +243,7 @@ cargo test --manifest-path programs/membership_core/Cargo.toml split_handles_typ
   - Set the admin role from `/dev`, or use a valid signed session whose wallet resolves to admin.
 
 - `403 owner_role_required` on owner-only routes like `/owner/campaigns/new`
-  - Submit an owner application from `/owner`, then use a wallet session that has been approved by admin.
+  - Submit an owner application from `/owner/apply`, then use a wallet session that has been approved by admin.
 
 - `template_image_required` while creating a campaign
   - Upload or provide a template image URI before submitting.
