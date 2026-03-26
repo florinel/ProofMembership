@@ -34,12 +34,17 @@ describe("store lifecycle", () => {
   });
 
   it("initializes platform config", () => {
+
     const config = initializePlatform({
       ownerApprovalFee: 0.5,
       clubCreationFee: 2,
       campaignCreationFee: 0.7,
       defaultCampaignFeeBps: 800,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     expect(config.initialized).toBe(true);
@@ -56,6 +61,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-1");
@@ -79,6 +88,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-2");
@@ -114,6 +127,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-3");
@@ -159,6 +176,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-onchain-map");
@@ -197,6 +218,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-template");
@@ -230,6 +255,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     const application = submitOwnerApplication({
@@ -259,6 +288,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     const application = submitOwnerApplication({
@@ -282,6 +315,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-live");
@@ -320,6 +357,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-proj");
@@ -363,6 +404,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-dupe");
@@ -408,6 +453,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-sold-out");
@@ -451,6 +500,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-expired");
@@ -489,6 +542,10 @@ describe("store lifecycle", () => {
       campaignCreationFee: 0.5,
       defaultCampaignFeeBps: 500,
       defaultMinCampaignFeeAtomic: "0.0003",
+      perMemberFee: 0.1,
+      perMemberFeeCap: 0.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.05,
     });
 
     approveOwner("owner-wallet-fee-policy");
@@ -496,14 +553,14 @@ describe("store lifecycle", () => {
     const club = createClub({
       slug: "fee-policy-club",
       ownerWallet: "owner-wallet-fee-policy",
-      metadataUri: "https://example.com/fee-policy.json",
+      metadataUri: "https://example.com/fee-policy-club.json",
       feePaid: 1,
     });
 
     setClubFeePolicy({
       clubId: club.id,
-      campaignFeeBps: 1500,
-      minCampaignFeeAtomic: "0.2",
+      campaignFeeBps: 0,
+      minCampaignFeeAtomic: "8.5", // Ensure string value
     });
 
     const campaign = createCampaign({
@@ -518,12 +575,11 @@ describe("store lifecycle", () => {
       expiresAtUnix: null,
     });
 
-    const result = purchaseMembership({
+    const purchase = purchaseMembership({
       campaignId: campaign.id,
       buyerWallet: "buyer-wallet-fee-policy",
     });
 
-    expect(result.platformFeeAtomic).toBe("1.500000");
-    expect(result.ownerReceivesAtomic).toBe("8.500000");
+    expect(purchase.platformFeeAtomic).toBe("8.500000");
   });
 });

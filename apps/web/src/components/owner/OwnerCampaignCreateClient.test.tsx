@@ -1,8 +1,14 @@
-import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
 
+
+import React from "react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 import OwnerCampaignCreateClient from "@/components/owner/OwnerCampaignCreateClient";
+
+// Mock auth dependency
+vi.mock("@/lib/auth/roles", () => ({
+  canAccess: vi.fn(() => Promise.resolve(true)),
+}));
 
 type MockResponse = {
   ok: boolean;
@@ -19,19 +25,36 @@ function createJsonResponse(data: unknown, ok = true, status = 200): MockRespons
 }
 
 describe("OwnerCampaignCreateClient visual flow", () => {
+
+  const defaultConfig = {
+    config: {
+      ownerApprovalFee: 0.5,
+      perMemberFee: 0.02,
+      perMemberFeeCap: 1.5,
+      perMemberFeeDiscountThreshold: 10,
+      perMemberFeeDiscount: 0.01,
+    },
+  };
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
   it("shows owner clubs in dropdown when owner wallet matches", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      createJsonResponse([
-        { id: "club-1", slug: "alpha", ownerWallet: "owner-wallet-A" },
-        { id: "club-2", slug: "beta", ownerWallet: "owner-wallet-B" },
-      ])
-    );
 
-    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+      const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        if (String(input) === "/api/admin/overview") {
+          return Promise.resolve(createJsonResponse(defaultConfig));
+        }
+        if (String(input) === "/api/clubs") {
+          return Promise.resolve(createJsonResponse([
+            { id: "club-1", slug: "alpha", ownerWallet: "owner-wallet-A" },
+            { id: "club-2", slug: "beta", ownerWallet: "owner-wallet-B" },
+          ]));
+        }
+        return Promise.reject(new Error(`Unexpected fetch call: ${String(input)}`));
+      });
+      vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     render(<OwnerCampaignCreateClient />);
 
@@ -50,8 +73,18 @@ describe("OwnerCampaignCreateClient visual flow", () => {
   });
 
   it("toggles live mint start input based on mint mode", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(createJsonResponse([]));
-    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+
+      const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        if (String(input) === "/api/admin/overview") {
+          return Promise.resolve(createJsonResponse(defaultConfig));
+        }
+        if (String(input) === "/api/clubs") {
+          return Promise.resolve(createJsonResponse([]));
+        }
+        return Promise.reject(new Error(`Unexpected fetch call: ${String(input)}`));
+      });
+      vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     render(<OwnerCampaignCreateClient />);
 
@@ -67,14 +100,21 @@ describe("OwnerCampaignCreateClient visual flow", () => {
   });
 
   it("uses initial owner wallet and preselected club", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      createJsonResponse([
-        { id: "club-1", slug: "alpha", ownerWallet: "owner-wallet-a", campaignFeeBps: 500, minCampaignFeeAtomic: "0.100000" },
-        { id: "club-2", slug: "beta", ownerWallet: "owner-wallet-a", campaignFeeBps: 900, minCampaignFeeAtomic: "0.200000" },
-      ])
-    );
 
-    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+      const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        if (String(input) === "/api/admin/overview") {
+          return Promise.resolve(createJsonResponse(defaultConfig));
+        }
+        if (String(input) === "/api/clubs") {
+          return Promise.resolve(createJsonResponse([
+            { id: "club-1", slug: "alpha", ownerWallet: "owner-wallet-a", campaignFeeBps: 500, minCampaignFeeAtomic: "0.100000" },
+            { id: "club-2", slug: "beta", ownerWallet: "owner-wallet-a", campaignFeeBps: 900, minCampaignFeeAtomic: "0.200000" },
+          ]));
+        }
+        return Promise.reject(new Error(`Unexpected fetch call: ${String(input)}`));
+      });
+      vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     render(<OwnerCampaignCreateClient initialOwnerWallet="owner-wallet-a" preselectedClubId="club-2" />);
 
@@ -85,23 +125,25 @@ describe("OwnerCampaignCreateClient visual flow", () => {
   });
 
   it("uploads template image and surfaces the resulting URI", async () => {
-    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
-      if (String(input) === "/api/clubs") {
-        return Promise.resolve(createJsonResponse([{ id: "club-1", slug: "alpha", ownerWallet: "owner-wallet-a", campaignFeeBps: 500, minCampaignFeeAtomic: "0.100000" }]));
-      }
 
-      if (String(input) === "/api/owner/template-upload" && init?.method === "POST") {
-        return Promise.resolve(createJsonResponse({
-          mediaUri: "/api/media/tpl-123",
-          permanentUri: "https://arweave.net/tpl-123",
-          storage: "arweave",
-        }));
-      }
 
-      return Promise.reject(new Error(`Unexpected fetch call: ${String(input)}`));
-    });
-
-    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+      const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+        if (String(input) === "/api/admin/overview") {
+          return Promise.resolve(createJsonResponse(defaultConfig));
+        }
+        if (String(input) === "/api/clubs") {
+          return Promise.resolve(createJsonResponse([{ id: "club-1", slug: "alpha", ownerWallet: "owner-wallet-a", campaignFeeBps: 500, minCampaignFeeAtomic: "0.100000" }]));
+        }
+        if (String(input) === "/api/owner/template-upload" && init?.method === "POST") {
+          return Promise.resolve(createJsonResponse({
+            mediaUri: "/api/media/tpl-123",
+            permanentUri: "https://arweave.net/tpl-123",
+            storage: "arweave",
+          }));
+        }
+        return Promise.reject(new Error(`Unexpected fetch call: ${String(input)}`));
+      });
+      vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     render(<OwnerCampaignCreateClient initialOwnerWallet="owner-wallet-a" preselectedClubId="club-1" />);
 
@@ -118,11 +160,18 @@ describe("OwnerCampaignCreateClient visual flow", () => {
   });
 
   it("blocks campaign submission until a template image is present", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      createJsonResponse([{ id: "club-1", slug: "alpha", ownerWallet: "owner-wallet-a", campaignFeeBps: 500, minCampaignFeeAtomic: "0.100000" }])
-    );
 
-    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+      const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        if (String(input) === "/api/admin/overview") {
+          return Promise.resolve(createJsonResponse(defaultConfig));
+        }
+        if (String(input) === "/api/clubs") {
+          return Promise.resolve(createJsonResponse([{ id: "club-1", slug: "alpha", ownerWallet: "owner-wallet-a", campaignFeeBps: 500, minCampaignFeeAtomic: "0.100000" }]));
+        }
+        return Promise.reject(new Error(`Unexpected fetch call: ${String(input)}`));
+      });
+      vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     render(<OwnerCampaignCreateClient initialOwnerWallet="owner-wallet-a" preselectedClubId="club-1" />);
 
@@ -139,25 +188,31 @@ describe("OwnerCampaignCreateClient visual flow", () => {
       expect(screen.getByText("Upload or provide a template image URI before creating campaign.")).toBeInTheDocument();
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // Should be called for /api/admin/overview and /api/clubs, but not for campaign creation
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      expect.stringContaining("/api/owner/campaigns"),
+      expect.objectContaining({ method: "POST" })
+    );
   });
 
   it("submits live-event campaign payload with derived timestamps", async () => {
-    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
-      if (String(input) === "/api/clubs") {
-        return Promise.resolve(createJsonResponse([{ id: "club-2", slug: "beta", ownerWallet: "owner-wallet-b", campaignFeeBps: 800, minCampaignFeeAtomic: "0.250000" }]));
-      }
 
-      if (String(input) === "/api/owner/campaigns" && init?.method === "POST") {
-        return Promise.resolve(createJsonResponse({
-          campaign: { id: "camp-1", name: "VIP Night" },
-        }));
-      }
 
-      return Promise.reject(new Error(`Unexpected fetch call: ${String(input)}`));
-    });
-
-    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+      const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+        if (String(input) === "/api/admin/overview") {
+          return Promise.resolve(createJsonResponse(defaultConfig));
+        }
+        if (String(input) === "/api/clubs") {
+          return Promise.resolve(createJsonResponse([{ id: "club-2", slug: "beta", ownerWallet: "owner-wallet-b", campaignFeeBps: 800, minCampaignFeeAtomic: "0.250000" }]));
+        }
+        if (String(input) === "/api/owner/campaigns" && init?.method === "POST") {
+          return Promise.resolve(createJsonResponse({
+            campaign: { id: "camp-1", name: "VIP Night" },
+          }));
+        }
+        return Promise.reject(new Error(`Unexpected fetch call: ${String(input)}`));
+      });
+      vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     render(<OwnerCampaignCreateClient initialOwnerWallet="owner-wallet-b" preselectedClubId="club-2" />);
 
@@ -185,16 +240,18 @@ describe("OwnerCampaignCreateClient visual flow", () => {
     });
     fireEvent.submit(screen.getByRole("button", { name: "Create campaign" }).closest("form")!);
 
+
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
       expect(screen.getByText("Campaign created: VIP Night. Go to /storefront to purchase.")).toBeInTheDocument();
     });
 
-    const request = fetchMock.mock.calls[1] as [string, RequestInit];
-    expect(request[0]).toBe("/api/owner/campaigns");
-    expect(request[1].method).toBe("POST");
-
-    const body = JSON.parse(String(request[1].body)) as {
+    // Find the POST to /api/owner/campaigns
+    const postCall = fetchMock.mock.calls.find(
+      ([url, init]) => url === "/api/owner/campaigns" && init?.method === "POST"
+    ) as [string, RequestInit];
+    expect(postCall).toBeTruthy();
+    const body = JSON.parse(String(postCall[1].body)) as {
       clubId: string;
       ownerWallet: string;
       name: string;

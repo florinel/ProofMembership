@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import React, { FormEvent, useState } from "react";
 
 type AdminOverviewResponse = {
   approvedOwners: number;
@@ -18,6 +18,10 @@ type AdminOverviewResponse = {
     campaignCreationFee: number;
     defaultCampaignFeeBps: number;
     defaultMinCampaignFeeAtomic: string;
+    perMemberFee: number;
+    perMemberFeeCap: number;
+    perMemberFeeDiscountThreshold: number;
+    perMemberFeeDiscount: number;
   };
 };
 
@@ -302,7 +306,8 @@ export default function AdminFlowClient() {
         {overview ? (
           <div className="stack-sm">
             <p>Initialized: {String(overview.config.initialized)}</p>
-            <p>Owner approval fee: {overview.config.ownerApprovalFee}</p>
+            <p>Owner approval fee: {overview.config.ownerApprovalFee} SOL</p>
+            <p>Per-member fee: {overview.config.perMemberFee} SOL (discount: {overview.config.perMemberFeeDiscount} after {overview.config.perMemberFeeDiscountThreshold} members, cap: {overview.config.perMemberFeeCap} SOL)</p>
             <p>Club Fee: {overview.config.clubCreationFee}</p>
             <p>Campaign Fee: {overview.config.campaignCreationFee}</p>
             <p>Default Campaign BPS: {overview.config.defaultCampaignFeeBps}</p>

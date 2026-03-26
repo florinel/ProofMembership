@@ -13,11 +13,21 @@ import type {
 
 type PlatformConfig = {
   initialized: boolean;
+  /** Up-front owner onboarding fee (SOL) */
   ownerApprovalFee: number;
   clubCreationFee: number;
   campaignCreationFee: number;
+  /** Per-membership platform fee in BPS (default: 2%) */
   defaultCampaignFeeBps: number;
   defaultMinCampaignFeeAtomic: string;
+  /** Per-member fee charged to owner on each membership (SOL) */
+  perMemberFee: number;
+  /** Max per-member fees charged (SOL), or 0 for no cap */
+  perMemberFeeCap: number;
+  /** Member count threshold for discount (0 = no discount) */
+  perMemberFeeDiscountThreshold: number;
+  /** Discounted per-member fee (SOL) after threshold */
+  perMemberFeeDiscount: number;
 };
 
 export type OwnerApplication = {
@@ -97,6 +107,10 @@ const initialState: PlatformState = {
     campaignCreationFee: 0.5,
     defaultCampaignFeeBps: 200,
     defaultMinCampaignFeeAtomic: "0.000300",
+    perMemberFee: 0.1, // 0.1 SOL per member
+    perMemberFeeCap: 10, // max 10 SOL per club (example)
+    perMemberFeeDiscountThreshold: 200, // after 200 members
+    perMemberFeeDiscount: 0.05, // 0.05 SOL per member after threshold
   },
   ledger: {
     incomingDeposits: 0,
@@ -240,7 +254,8 @@ function nowUnix(): number {
   return Math.floor(Date.now() / 1000);
 }
 
-function toFixedAtomic(value: number): string {
+function toFixedAtomic(value: number | undefined | null): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "0.000000";
   return value.toFixed(6);
 }
 
@@ -343,13 +358,7 @@ function assertCampaignPurchasable(campaign: Campaign): void {
   }
 }
 
-export function initializePlatform(config: {
-  ownerApprovalFee: number;
-  clubCreationFee: number;
-  campaignCreationFee: number;
-  defaultCampaignFeeBps: number;
-  defaultMinCampaignFeeAtomic: string;
-}): PlatformConfig {
+export function initializePlatform(config: Omit<PlatformConfig, "initialized">): PlatformConfig {
   if (!Number.isFinite(config.defaultCampaignFeeBps) || config.defaultCampaignFeeBps < 0 || config.defaultCampaignFeeBps > 10_000) {
     throw new Error("invalid_campaign_fee_bps");
   }
@@ -370,6 +379,10 @@ export function initializePlatform(config: {
     campaignCreationFee: config.campaignCreationFee,
     defaultCampaignFeeBps: config.defaultCampaignFeeBps,
     defaultMinCampaignFeeAtomic: toFixedAtomic(minFee),
+    perMemberFee: typeof config.perMemberFee === 'number' ? config.perMemberFee : 0,
+    perMemberFeeCap: typeof config.perMemberFeeCap === 'number' ? config.perMemberFeeCap : 0,
+    perMemberFeeDiscountThreshold: typeof config.perMemberFeeDiscountThreshold === 'number' ? config.perMemberFeeDiscountThreshold : 0,
+    perMemberFeeDiscount: typeof config.perMemberFeeDiscount === 'number' ? config.perMemberFeeDiscount : 0,
   };
   writeStore(state);
   appendEvent("platform_initialized", {
@@ -768,9 +781,30 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
     minFeeAtomic: club.minCampaignFeeAtomic,
   });
 
+  // --- Hybrid per-member fee logic ---
+  // Count all memberships for this club
+  const clubMemberships = state.memberships.filter((m) => m.campaignId && state.campaigns.find((c) => c.id === m.campaignId)?.clubId === club.id);
+  const memberCount = clubMemberships.length + 1; // include this purchase
+  const cfg = state.config;
+  let perMemberFee = cfg.perMemberFee;
+  if (cfg.perMemberFeeDiscountThreshold > 0 && memberCount > cfg.perMemberFeeDiscountThreshold) {
+    perMemberFee = cfg.perMemberFeeDiscount;
+  }
+  // Cap total per-member fees if configured
+  let totalPerMemberFees = clubMemberships.length * cfg.perMemberFee;
+  if (cfg.perMemberFeeDiscountThreshold > 0 && clubMemberships.length >= cfg.perMemberFeeDiscountThreshold) {
+    // All members after threshold use discount
+    totalPerMemberFees = cfg.perMemberFeeDiscountThreshold * cfg.perMemberFee + (clubMemberships.length - cfg.perMemberFeeDiscountThreshold) * cfg.perMemberFeeDiscount;
+  }
+  let applyPerMemberFee = perMemberFee;
+  if (cfg.perMemberFeeCap > 0 && (totalPerMemberFees + perMemberFee) > cfg.perMemberFeeCap) {
+    // Only charge up to the cap
+    applyPerMemberFee = Math.max(0, cfg.perMemberFeeCap - totalPerMemberFees);
+  }
+
   campaign.mintedSupply += 1;
   state.ledger.incomingDeposits += split.paidAmount;
-  state.ledger.platformBalance += split.platformFee;
+  state.ledger.platformBalance += split.platformFee + applyPerMemberFee;
 
   // Local mode mints a synthetic asset record immediately and tracks fee split
   // in the read model without requiring an RPC round-trip.
@@ -809,7 +843,8 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
     metadataUri: asset.metadataUri,
     paidAmount: split.paidAmount,
     platformFeeAtomic: toFixedAtomic(split.platformFee),
-    ownerReceivesAtomic: toFixedAtomic(split.ownerReceives),
+    perMemberFee: toFixedAtomic(applyPerMemberFee),
+    ownerReceivesAtomic: toFixedAtomic(split.ownerReceives - applyPerMemberFee),
   });
 
   return {
@@ -817,7 +852,7 @@ export function purchaseMembership(input: { campaignId: string; buyerWallet: str
     asset,
     paidAmount: split.paidAmount,
     platformFeeAtomic: toFixedAtomic(split.platformFee),
-    ownerReceivesAtomic: toFixedAtomic(split.ownerReceives),
+    ownerReceivesAtomic: toFixedAtomic(split.ownerReceives - applyPerMemberFee),
   };
 }
 

@@ -119,6 +119,10 @@ function seedCampaign(): { campaignId: string } {
     campaignCreationFee: 0.5,
     defaultCampaignFeeBps: 200,
     defaultMinCampaignFeeAtomic: "0.0003",
+    perMemberFee: 0.1,
+    perMemberFeeCap: 0.5,
+    perMemberFeeDiscountThreshold: 10,
+    perMemberFeeDiscount: 0.05,
   });
 
   const application = submitOwnerApplication({

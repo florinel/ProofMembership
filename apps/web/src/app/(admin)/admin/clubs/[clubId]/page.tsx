@@ -1,3 +1,4 @@
+import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -46,6 +47,7 @@ export default async function AdminClubDetailPage({
         <p>Metadata URI: {club.metadataUri}</p>
         <p>Campaign fee BPS: {club.campaignFeeBps}</p>
         <p>Minimum campaign fee: {club.minCampaignFeeAtomic} SOL</p>
+        <p>Platform per-member fee: See platform config in admin dashboard for current policy.</p>
       </div>
       <div className="panel">
         <h3>Campaigns</h3>

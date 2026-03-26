@@ -1,8 +1,19 @@
-import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
+
+import React from "react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 import OwnerOnboardingClient from "@/components/owner/OwnerOnboardingClient";
+
+// Mock fetch and auth dependencies
+vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({
+  ok: true,
+  status: 200,
+  json: async () => ({}),
+})));
+vi.mock("@/lib/auth/roles", () => ({
+  canAccess: vi.fn(() => Promise.resolve(true)),
+}));
 
 type MockResponse = {
   ok: boolean;

@@ -2,6 +2,13 @@
 
 import React from "react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+type PlatformConfig = {
+  ownerApprovalFee: number;
+  perMemberFee: number;
+  perMemberFeeCap: number;
+  perMemberFeeDiscountThreshold: number;
+  perMemberFeeDiscount: number;
+};
 
 type ClubSummary = {
   id: string;
@@ -17,6 +24,23 @@ type OwnerCampaignCreateClientProps = {
 };
 
 export default function OwnerCampaignCreateClient({ initialOwnerWallet, preselectedClubId }: OwnerCampaignCreateClientProps) {
+    const [platformConfig, setPlatformConfig] = useState<PlatformConfig | null>(null);
+    useEffect(() => {
+      async function loadConfig() {
+        const response = await fetch("/api/admin/overview");
+        const data = await response.json();
+        if (data && data.config) {
+          setPlatformConfig({
+            ownerApprovalFee: data.config.ownerApprovalFee,
+            perMemberFee: data.config.perMemberFee,
+            perMemberFeeCap: data.config.perMemberFeeCap,
+            perMemberFeeDiscountThreshold: data.config.perMemberFeeDiscountThreshold,
+            perMemberFeeDiscount: data.config.perMemberFeeDiscount,
+          });
+        }
+      }
+      loadConfig();
+    }, []);
   const [status, setStatus] = useState("Ready");
   const [ownerWallet, setOwnerWallet] = useState(initialOwnerWallet ?? "");
   const [clubs, setClubs] = useState<ClubSummary[]>([]);
@@ -159,6 +183,13 @@ export default function OwnerCampaignCreateClient({ initialOwnerWallet, preselec
   const platformFee = Number.isFinite(parsedPrice) && parsedPrice > 0 ? Math.min(parsedPrice, Math.max(minFee, bpsFee)) : 0;
   const ownerNet = Number.isFinite(parsedPrice) && parsedPrice > 0 ? Math.max(0, parsedPrice - platformFee) : 0;
 
+  // Hybrid fee preview (from backend config)
+  const ownerApprovalFee = platformConfig?.ownerApprovalFee ?? 0.5;
+  const perMemberFee = platformConfig?.perMemberFee ?? 0.1;
+  const perMemberFeeCap = platformConfig?.perMemberFeeCap ?? 10;
+  const perMemberFeeDiscountThreshold = platformConfig?.perMemberFeeDiscountThreshold ?? 200;
+  const perMemberFeeDiscount = platformConfig?.perMemberFeeDiscount ?? 0.05;
+
   return (
     <form className="panel form-grid" onSubmit={submit}>
       <p>Campaign fee policy and campaign creation fee are controlled by contract admin.</p>
@@ -207,9 +238,13 @@ export default function OwnerCampaignCreateClient({ initialOwnerWallet, preselec
         {selectedClub ? (
           <div className="stack-sm">
             <p>Configured platform policy: {selectedClub.campaignFeeBps} bps + {selectedClub.minCampaignFeeAtomic} SOL min</p>
+            <p>Up-front owner approval fee: {ownerApprovalFee.toFixed(2)} SOL</p>
+            <p>Per-member fee: {perMemberFee.toFixed(2)} SOL (discount: {perMemberFeeDiscount.toFixed(2)} after {perMemberFeeDiscountThreshold} members, cap: {perMemberFeeCap} SOL)</p>
             <p>Member pays: {Number.isFinite(parsedPrice) ? parsedPrice.toFixed(6) : "0.000000"} SOL</p>
-            <p>Platform fee: {platformFee.toFixed(6)} SOL</p>
-            <p>Owner receives: {ownerNet.toFixed(6)} SOL</p>
+            <p>Platform fee (per membership): {platformFee.toFixed(6)} SOL</p>
+            <p>Owner receives (per membership, before per-member fee): {ownerNet.toFixed(6)} SOL</p>
+            <p>Owner receives (after per-member fee): {(ownerNet - perMemberFee).toFixed(6)} SOL (first {perMemberFeeDiscountThreshold} members)</p>
+            <p>Owner receives (after discount): {(ownerNet - perMemberFeeDiscount).toFixed(6)} SOL (after {perMemberFeeDiscountThreshold} members, until cap)</p>
           </div>
         ) : (
           <p>Select an owned club to view fee and net preview.</p>
