@@ -31,3 +31,6 @@ test-ledger/
 # OS
 .DS_Store
 Thumbs.db
+
+# Ignore calculations documentation
+calculations.md
